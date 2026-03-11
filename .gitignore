@@ -3,3 +3,6 @@ node_modules
 dist
 build
 target
+.env
+backend/.env
+node_modules
