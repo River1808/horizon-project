@@ -43,6 +43,7 @@ const Header = () => {
             <Link to="/projects">Projects</Link>
             <Link to="/map">Map</Link>
             <Link to="/questionnaire">Questionnaire</Link>
+            <Link to="/forum">Forum</Link>
           </nav>
 
           <div className="header-actions">

@@ -7,7 +7,7 @@ import Challenges from './pages/Challenges';
 import Projects from './pages/Projects';
 import MapPage from './pages/MapPage';
 import Questionnaire from './pages/Questionnaire';
-
+import Forum from './pages/Forum';
 function App() {
   return (
     <SearchProvider>
@@ -22,6 +22,7 @@ function App() {
               <Route path="/projects" element={<Projects />} />
               <Route path="/map" element={<MapPage />} />
               <Route path="/questionnaire" element={<Questionnaire />} />
+              <Route path="/forum" element={<Forum />} />
             </Routes>
           </main>
           <footer className="footer">
