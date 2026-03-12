@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import "./Forum.css";
 
-const API_BASE = "http://localhost:8082/api/forum";
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/forum`;
+
+export async function getPosts() {
+  const res = await fetch(`${API_BASE}/posts`);
+  return res.json();
+}
 
 export default function Forum() {
   const [posts, setPosts] = useState([]);
