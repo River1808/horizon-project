@@ -8,7 +8,7 @@ const MapPage = () => {
   const { searchTerm } = useSearch();
 
   useEffect(() => {
-    axios.get('${import.meta.env.VITE_API_URL}/api/stations').then(res => setStations(res.data));
+    axios.get(`${import.meta.env.VITE_API_URL}/api/stations`).then(res => setStations(res.data));
   }, []);
 
   const filteredStations = stations.filter(station =>

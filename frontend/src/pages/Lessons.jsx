@@ -7,7 +7,7 @@ const Lessons = () => {
   const { searchTerm } = useSearch();
 
   useEffect(() => {
-    axios.get('${import.meta.env.VITE_API_URL}/api/lessons').then(res => setLessons(res.data));
+    axios.get(`${import.meta.env.VITE_API_URL}/api/lessons`).then(res => setLessons(res.data));
   }, []);
 
   const filteredLessons = lessons.filter(lesson =>
