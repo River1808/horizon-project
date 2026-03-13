@@ -8,7 +8,7 @@ const MapPage = () => {
   const { searchTerm } = useSearch();
 
   useEffect(() => {
-    axios.get('http://localhost:8082/api/stations').then(res => setStations(res.data));
+    axios.get('${import.meta.env.VITE_API_URL}/api/stations').then(res => setStations(res.data));
   }, []);
 
   const filteredStations = stations.filter(station =>
@@ -17,7 +17,7 @@ const MapPage = () => {
   );
 
   const handleVolunteer = (stationId) => {
-    axios.post(`http://localhost:8082/api/stations/${stationId}/volunteer-request`, {userName: 'Guest', message: 'Interested in volunteering'});
+    axios.post(`${import.meta.env.VITE_API_URL}/api/stations/${stationId}/volunteer-request`, {userName: 'Guest', message: 'Interested in volunteering'});
     alert('Volunteer request submitted!');
   };
 

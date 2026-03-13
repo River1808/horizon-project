@@ -7,11 +7,11 @@ const Questionnaire = () => {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8082/api/questionnaire').then(res => setQuestions(res.data));
+    axios.get('${import.meta.env.VITE_API_URL}/api/questionnaire').then(res => setQuestions(res.data));
   }, []);
 
   const handleSubmit = () => {
-    axios.post('http://localhost:8082/api/questionnaire/submit', {userName: 'Guest', answers}).then(res => setResult(res.data.personality));
+    axios.post(`${import.meta.env.VITE_API_URL}/api/questionnaire/submit`, {userName: 'Guest', answers}).then(res => setResult(res.data.personality));
   };
 
   return (

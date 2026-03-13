@@ -7,7 +7,7 @@ const Projects = () => {
   const { searchTerm } = useSearch();
 
   useEffect(() => {
-    axios.get('http://localhost:8082/api/projects').then(res => setProjects(res.data));
+    axios.get('${import.meta.env.VITE_API_URL}/api/projects').then(res => setProjects(res.data));
   }, []);
 
   const filteredProjects = projects.filter(project =>
