@@ -7,7 +7,7 @@ const Challenges = () => {
   const { searchTerm } = useSearch();
 
   useEffect(() => {
-    axios.get('${import.meta.env.VITE_API_URL}/api/challenges').then(res => setChallenges(res.data));
+    axios.get(`${import.meta.env.VITE_API_URL}/api/challenges`).then(res => setChallenges(res.data));
   }, []);
 
   const filteredChallenges = challenges.filter(challenge =>

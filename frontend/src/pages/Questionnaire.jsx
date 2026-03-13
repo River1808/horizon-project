@@ -7,7 +7,7 @@ const Questionnaire = () => {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    axios.get('${import.meta.env.VITE_API_URL}/api/questionnaire').then(res => setQuestions(res.data));
+    axios.get(`${import.meta.env.VITE_API_URL}/api/questionnaire`).then(res => setQuestions(res.data));
   }, []);
 
   const handleSubmit = () => {
