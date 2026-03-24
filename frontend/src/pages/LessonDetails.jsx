@@ -26,6 +26,10 @@ const LessonDetails = () => {
     );
   }
 
+  const formattedDate = lesson.createdAt
+    ? new Date(lesson.createdAt).toLocaleDateString()
+    : "N/A";
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Back Button */}
@@ -36,44 +40,39 @@ const LessonDetails = () => {
         ⬅ Back to Lessons
       </button>
 
-      {/* Top Section */}
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* IMAGE */}
-          <img
-            src={lesson.imageUrl}
-            alt="lesson"
-            className="w-full md:w-1/2 h-64 object-cover rounded-lg"
-          />
+      <div className="bg-white shadow-lg rounded-lg p-6">
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          
+          {/* LEFT: IMAGE */}
+          <div className="w-full md:w-1/2">
+            <img
+              src={lesson.imageUrl}
+              alt="lesson"
+              className="w-full h-64 object-cover rounded-lg shadow"
+            />
+          </div>
 
-          {/* TITLE + INFO */}
-          <div className="flex flex-col gap-3 md:w-1/2">
+          {/* RIGHT: TITLE + INFO */}
+          <div className="w-full md:w-1/2 flex flex-col gap-3">
             <h1 className="text-3xl font-bold text-gray-900">{lesson.title}</h1>
 
-            <p className="text-gray-600 text-lg">{lesson.description}</p>
+            <p className="text-gray-600">{lesson.description}</p>
 
-            <div className="text-sm text-gray-500 space-y-1">
-              {lesson.category && (
-                <p>
-                  <span className="font-semibold text-gray-700">Category:</span>{" "}
-                  {lesson.category}
-                </p>
-              )}
-              {lesson.level && (
-                <p>
-                  <span className="font-semibold text-gray-700">Level:</span>{" "}
-                  {lesson.level}
-                </p>
-              )}
+            <div className="text-sm text-gray-700 space-y-1">
               <p>
-                <span className="font-semibold text-gray-700">Date:</span>{" "}
-                {new Date(lesson.createdAt).toLocaleDateString()}
+                <span className="font-semibold">Category:</span> {lesson.category}
+              </p>
+              <p>
+                <span className="font-semibold">Level:</span> {lesson.level}
+              </p>
+              <p>
+                <span className="font-semibold">Date:</span> {formattedDate}
               </p>
             </div>
           </div>
         </div>
 
-        {/* CONTENT */}
+        {/* CONTENT BELOW */}
         <div className="mt-8 border-t pt-6">
           <h2 className="text-2xl font-semibold mb-4 text-gray-900">
             Lesson Content

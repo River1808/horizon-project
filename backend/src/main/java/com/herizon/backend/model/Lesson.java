@@ -2,6 +2,9 @@ package com.herizon.backend.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.CreatedDate;
+
+import java.util.Date;
 
 @Document(collection = "lessons")
 public class Lesson {
@@ -14,7 +17,10 @@ public class Lesson {
     private String level;
     private String description;
     private String content;
-    private String imageUrl; // <--- added (optional)
+    private String imageUrl;
+
+    @CreatedDate
+    private Date createdAt;   // ✅ automatically filled by MongoDB
 
     public Lesson() {}
 
@@ -28,52 +34,59 @@ public class Lesson {
     }
 
     // ====== GETTERS & SETTERS ======
-    public String getId() { 
-        return id; 
+    public String getId() {
+        return id;
     }
-    public void setId(String id) { 
-        this.id = id; 
-    }
-
-    public String getTitle() { 
-        return title; 
-    }
-    public void setTitle(String title) { 
-        this.title = title; 
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public String getCategory() { 
-        return category; 
+    public String getTitle() {
+        return title;
     }
-    public void setCategory(String category) { 
-        this.category = category; 
-    }
-
-    public String getLevel() { 
-        return level; 
-    }
-    public void setLevel(String level) { 
-        this.level = level; 
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public String getDescription() { 
-        return description; 
+    public String getCategory() {
+        return category;
     }
-    public void setDescription(String description) { 
-        this.description = description; 
-    }
-
-    public String getContent() { 
-        return content; 
-    }
-    public void setContent(String content) { 
-        this.content = content; 
+    public void setCategory(String category) {
+        this.category = category;
     }
 
-    public String getImageUrl() { 
-        return imageUrl; 
+    public String getLevel() {
+        return level;
     }
-    public void setImageUrl(String imageUrl) { 
-        this.imageUrl = imageUrl; 
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getContent() {
+        return content;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

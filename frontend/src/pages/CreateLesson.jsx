@@ -44,57 +44,99 @@ const CreateLesson = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg p-6 rounded-lg space-y-4"
+        className="bg-white shadow-lg p-6 rounded-lg space-y-6"
       >
-        <input
-          name="title"
-          placeholder="Lesson Title"
-          onChange={handleChange}
-          className="w-full p-3 border rounded"
-          required
-        />
-
-        <input
-          name="description"
-          placeholder="Short Summary"
-          onChange={handleChange}
-          className="w-full p-3 border rounded"
-          required
-        />
-
-        <textarea
-          name="content"
-          placeholder="Full Content"
-          rows="5"
-          onChange={handleChange}
-          className="w-full p-3 border rounded"
-          required
-        />
-
-        <input
-          name="category"
-          placeholder="Category (Science, Math...)"
-          onChange={handleChange}
-          className="w-full p-3 border rounded"
-        />
-
-        <input
-          name="level"
-          placeholder="Level (Beginner / Intermediate / Advanced)"
-          onChange={handleChange}
-          className="w-full p-3 border rounded"
-        />
-
-        <label className="block font-medium">Upload Image</label>
-        <input type="file" onChange={handleImage} className="w-full p-2" />
-
-        {image && (
-          <img
-            src={image}
-            className="w-full h-40 object-cover rounded mt-3 shadow"
+        {/* Title */}
+        <div className="flex flex-col space-y-1">
+          <label className="font-medium">Lesson Title</label>
+          <input
+            name="title"
+            placeholder="Enter lesson title"
+            onChange={handleChange}
+            className="w-full p-3 border rounded"
+            required
           />
-        )}
+        </div>
 
+        {/* Summary */}
+        <div className="flex flex-col space-y-1">
+          <label className="font-medium">Short Summary</label>
+          <input
+            name="description"
+            placeholder="Brief lesson summary"
+            onChange={handleChange}
+            className="w-full p-3 border rounded"
+            required
+          />
+        </div>
+
+        {/* Full Content */}
+        <div className="flex flex-col space-y-1">
+          <label className="font-medium">Full Content</label>
+          <textarea
+            name="content"
+            placeholder="Write the full lesson content here..."
+            rows="6"
+            onChange={handleChange}
+            className="w-full p-3 border rounded"
+            required
+          />
+        </div>
+
+        {/* Category Dropdown */}
+        <div className="flex flex-col space-y-1">
+          <label className="font-medium">Category</label>
+          <select
+            name="category"
+            onChange={handleChange}
+            className="w-full p-3 border rounded bg-white"
+            required
+          >
+            <option value="">Select a category</option>
+            <option>Math</option>
+            <option>Natural Science</option>
+            <option>Tech</option>
+            <option>Robotics</option>
+            <option>Applied Science</option>
+            <option>Basic Knowledge</option>
+          </select>
+        </div>
+
+        {/* Level Dropdown */}
+        <div className="flex flex-col space-y-1">
+          <label className="font-medium">Difficulty Level</label>
+          <select
+            name="level"
+            onChange={handleChange}
+            className="w-full p-3 border rounded bg-white"
+            required
+          >
+            <option value="">Select a level</option>
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+        </div>
+
+        {/* Image Upload */}
+        <div className="flex flex-col space-y-1">
+          <label className="font-medium">Upload Image</label>
+          <input
+            type="file"
+            onChange={handleImage}
+            className="w-full p-2 border rounded"
+          />
+
+          {image && (
+            <img
+              src={image}
+              alt="preview"
+              className="w-full h-48 object-cover rounded mt-3 shadow"
+            />
+          )}
+        </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 shadow"
