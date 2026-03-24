@@ -9,6 +9,7 @@ import MapPage from './pages/MapPage';
 import Questionnaire from './pages/Questionnaire';
 import Forum from './pages/Forum';
 import CreateLesson from "./pages/CreateLesson";
+import LessonDetails from "./pages/LessonDetails";
 function App() {
   return (
     <SearchProvider>
@@ -24,8 +25,8 @@ function App() {
               <Route path="/map" element={<MapPage />} />
               <Route path="/questionnaire" element={<Questionnaire />} />
               <Route path="/forum" element={<Forum />} />
-              <Route path="/lessons" element={<Lessons />} />
               <Route path="/create-lesson" element={<CreateLesson />} />
+              <Route path="/lessons/:id" element={<LessonDetails />} />
             </Routes>
           </main>
           <footer className="footer">
