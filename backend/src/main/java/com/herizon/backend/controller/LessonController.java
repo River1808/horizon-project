@@ -4,6 +4,7 @@ import com.herizon.backend.model.Lesson;
 import com.herizon.backend.repository.LessonRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,7 +37,9 @@ public class LessonController {
     // GET SINGLE LESSON BY ID
     // =============================
     @GetMapping("/{id}")
-    public Lesson getLesson(@PathVariable String id) {
-        return lessonRepository.findById(id).orElse(null);
+    public ResponseEntity<Lesson> getLesson(@PathVariable String id) {
+        return lessonRepository.findById(id)
+                .map(ResponseEntity::ok) // return 200 + lesson
+                .orElse(ResponseEntity.notFound().build()); // return 404
     }
 }
