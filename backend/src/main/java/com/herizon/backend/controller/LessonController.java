@@ -92,15 +92,8 @@ public class LessonController {
     // DELETE LESSON
     // =============================
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLesson(@PathVariable String id) {
-
-        return lessonRepository.findById(id)
-                .map(lesson -> {
-                    lessonRepository.delete(lesson);
-
-                    // IMPORTANT: Force generic type to Void
-                    return ResponseEntity.<Void>noContent().build();
-                })
-                .orElseGet(() -> ResponseEntity.<Void>notFound().build());
+    public ResponseEntity<?> deleteLesson(@PathVariable String id) {
+        lessonRepository.deleteById(id);
+        return ResponseEntity.ok("Lesson deleted successfully");
     }
 }
