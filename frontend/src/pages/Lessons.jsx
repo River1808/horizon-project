@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState("All");
+
   const { searchTerm } = useSearch();
   const navigate = useNavigate();
 
@@ -14,11 +16,18 @@ const Lessons = () => {
       .then((res) => setLessons(res.data));
   }, []);
 
-  const filteredLessons = lessons.filter((lesson) =>
-    lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lesson.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lesson.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Combined Search + Category Filter
+  const filteredLessons = lessons.filter((lesson) => {
+    const matchesSearch =
+      lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lesson.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lesson.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory =
+      categoryFilter === "All" || lesson.category === categoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="container mx-auto p-8">
@@ -33,6 +42,24 @@ const Lessons = () => {
         </button>
       </div>
 
+      {/* 🔽 Category Filter */}
+      <div className="mb-6">
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="p-3 border rounded-lg shadow-sm"
+        >
+          <option value="All">All Categories</option>
+          <option value="Math">Math</option>
+          <option value="Natural Science">Natural Science</option>
+          <option value="Tech">Tech</option>
+          <option value="Robotics">Robotics</option>
+          <option value="Applied Science">Applied Science</option>
+          <option value="Basic Knowledge">Basic Knowledge</option>
+        </select>
+      </div>
+
+      {/* 🔽 Lesson Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {filteredLessons.map((lesson) => (
           <div
