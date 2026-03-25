@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const categories = ["Science", "Technology", "Engineering", "Art", "Math"];
+const levels = ["Beginner", "Intermediate", "Advanced"];
+
 const EditLesson = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -55,7 +58,6 @@ const EditLesson = () => {
 
     let imageUrl = lesson.imageUrl;
 
-    // If new image selected, upload first
     if (newImage) {
       imageUrl = await uploadImage();
     }
@@ -70,7 +72,6 @@ const EditLesson = () => {
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this lesson?")) return;
-
     await axios.delete(`${import.meta.env.VITE_API_URL}/api/lessons/${id}`);
     navigate("/lessons");
   };
@@ -80,33 +81,28 @@ const EditLesson = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Edit Lesson</h1>
+      <h1 className="text-3xl font-bold mb-6">Edit Lesson</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 shadow rounded">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 shadow rounded">
 
-        {/* IMAGE PREVIEW */}
+        {/* Image Preview */}
         {lesson.imageUrl && (
-          <div className="w-full">
+          <div>
             <p className="font-medium mb-2">Current Image:</p>
             <img
               src={lesson.imageUrl}
-              alt="Lesson"
               className="w-48 h-32 object-cover rounded border"
             />
           </div>
         )}
 
-        {/* CHANGE IMAGE */}
+        {/* Image Change */}
         <div>
           <label className="block font-medium mb-1">Change Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full"
-          />
+          <input type="file" accept="image/*" onChange={handleImageChange} />
         </div>
 
+        {/* Title */}
         <input
           name="title"
           value={lesson.title}
@@ -115,22 +111,33 @@ const EditLesson = () => {
           className="w-full p-3 border rounded"
         />
 
-        <input
+        {/* Category Dropdown */}
+        <select
           name="category"
           value={lesson.category}
           onChange={handleChange}
-          placeholder="Category"
           className="w-full p-3 border rounded"
-        />
+        >
+          <option value="">Select Category</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
 
-        <input
+        {/* Level Dropdown */}
+        <select
           name="level"
           value={lesson.level}
           onChange={handleChange}
-          placeholder="Level"
           className="w-full p-3 border rounded"
-        />
+        >
+          <option value="">Select Level</option>
+          {levels.map((l) => (
+            <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
 
+        {/* Description */}
         <textarea
           name="description"
           value={lesson.description}
@@ -139,6 +146,7 @@ const EditLesson = () => {
           className="w-full p-3 border rounded h-24"
         />
 
+        {/* Content */}
         <textarea
           name="content"
           value={lesson.content}
@@ -147,8 +155,11 @@ const EditLesson = () => {
           className="w-full p-3 border rounded h-40"
         />
 
-        {/* SAVE BUTTON */}
-        <button className="w-full px-4 py-3 bg-blue-600 text-white rounded">
+        {/* SAVE BUTTON FIXED */}
+        <button
+          type="submit"
+          className="w-full py-3 bg-blue-600 text-white rounded font-medium"
+        >
           Save Changes
         </button>
 
@@ -156,7 +167,7 @@ const EditLesson = () => {
         <button
           type="button"
           onClick={handleDelete}
-          className="w-full px-4 py-3 bg-red-600 text-white rounded"
+          className="w-full py-3 bg-red-600 text-white rounded mt-2"
         >
           Delete Lesson
         </button>
