@@ -22,7 +22,7 @@ public class LessonController {
     private LessonRepository lessonRepository;
 
     @Autowired
-    private Cloudinary cloudinary;  // <-- Inject Cloudinary bean
+    private Cloudinary cloudinary;
 
     // =============================
     // GET ALL LESSONS
@@ -41,7 +41,7 @@ public class LessonController {
     }
 
     // =============================
-    // GET SINGLE LESSON BY ID
+    // GET SINGLE LESSON
     // =============================
     @GetMapping("/{id}")
     public ResponseEntity<Lesson> getLesson(@PathVariable String id) {
@@ -54,35 +54,53 @@ public class LessonController {
     // UPDATE LESSON
     // =============================
     @PutMapping("/{id}")
-    public Lesson updateLesson(@PathVariable String id, @RequestBody Lesson updatedLesson) {
-        return lessonRepository.findById(id).map(lesson -> {
+    public ResponseEntity<Lesson> updateLesson(@PathVariable String id, @RequestBody Lesson updatedLesson) {
+        return lessonRepository.findById(id)
+                .map(existing -> {
+                    existing.setTitle(updatedLesson.getTitle());
+                    existing.setDescription(updatedLesson.getDescription());
+                    existing.setContent(updatedLesson.getContent());
+                    existing.setCategory(updatedLesson.getCategory());
+                    existing.setLevel(updatedLesson.getLevel());
+                    existing.setImageUrl(updatedLesson.getImageUrl());
 
-            lesson.setTitle(updatedLesson.getTitle());
-            lesson.setDescription(updatedLesson.getDescription());
-            lesson.setContent(updatedLesson.getContent());
-            lesson.setCategory(updatedLesson.getCategory());
-            lesson.setLevel(updatedLesson.getLevel());
-            lesson.setImageUrl(updatedLesson.getImageUrl());
-
-            return lessonRepository.save(lesson);
-        }).orElse(null);
+                    Lesson saved = lessonRepository.save(existing);
+                    return ResponseEntity.ok(saved);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // =============================
-    // UPLOAD IMAGE TO CLOUDINARY
+    // UPLOAD IMAGE
     // =============================
     @PostMapping("/upload")
     public Map<String, String> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap("folder", "herizon_lessons")
+            );
+
             return Map.of("url", uploadResult.get("secure_url").toString());
+
         } catch (Exception e) {
-            return Map.of("error", "Upload failed");
+            return Map.of("error", "Upload failed: " + e.getMessage());
         }
     }
+
+    // =============================
+    // DELETE LESSON
+    // =============================
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteLesson(@PathVariable String id) {
-        lessonRepository.deleteById(id);
-        return ResponseEntity.ok("Lesson deleted successfully");
+    public ResponseEntity<Void> deleteLesson(@PathVariable String id) {
+
+        return lessonRepository.findById(id)
+                .map(lesson -> {
+                    lessonRepository.delete(lesson);
+
+                    // IMPORTANT: Force generic type to Void
+                    return ResponseEntity.<Void>noContent().build();
+                })
+                .orElseGet(() -> ResponseEntity.<Void>notFound().build());
     }
 }
