@@ -19,8 +19,18 @@ const CreateLesson = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleImage = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
+  const handleImage = async (e) => {
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/upload`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    setImage(res.data.url); // real Cloudinary URL
   };
 
   const handleSubmit = async (e) => {
@@ -31,7 +41,10 @@ const CreateLesson = () => {
       imageUrl: image,
     };
 
-    await axios.post(`${import.meta.env.VITE_API_URL}/api/lessons`, newLesson);
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/lessons`,
+      newLesson
+    );
 
     navigate("/lessons");
   };
@@ -44,55 +57,48 @@ const CreateLesson = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg p-6 rounded-lg space-y-6"
+        className="bg-white shadow-lg p-6 rounded-lg space-y-4"
       >
-        {/* Title */}
-        <div className="flex flex-col space-y-1">
-          <label className="font-medium">Lesson Title</label>
+        <div>
+          <label className="font-semibold">Title</label>
           <input
             name="title"
-            placeholder="Enter lesson title"
             onChange={handleChange}
             className="w-full p-3 border rounded"
             required
           />
         </div>
 
-        {/* Summary */}
-        <div className="flex flex-col space-y-1">
-          <label className="font-medium">Short Summary</label>
+        <div>
+          <label className="font-semibold">Short Description</label>
           <input
             name="description"
-            placeholder="Brief lesson summary"
             onChange={handleChange}
             className="w-full p-3 border rounded"
             required
           />
         </div>
 
-        {/* Full Content */}
-        <div className="flex flex-col space-y-1">
-          <label className="font-medium">Full Content</label>
+        <div>
+          <label className="font-semibold">Full Content</label>
           <textarea
             name="content"
-            placeholder="Write the full lesson content here..."
-            rows="6"
+            rows="5"
             onChange={handleChange}
             className="w-full p-3 border rounded"
             required
           />
         </div>
 
-        {/* Category Dropdown */}
-        <div className="flex flex-col space-y-1">
-          <label className="font-medium">Category</label>
+        <div>
+          <label className="font-semibold">Category</label>
           <select
             name="category"
             onChange={handleChange}
-            className="w-full p-3 border rounded bg-white"
+            className="w-full p-3 border rounded"
             required
           >
-            <option value="">Select a category</option>
+            <option value="">Select Category</option>
             <option>Math</option>
             <option>Natural Science</option>
             <option>Tech</option>
@@ -102,41 +108,33 @@ const CreateLesson = () => {
           </select>
         </div>
 
-        {/* Level Dropdown */}
-        <div className="flex flex-col space-y-1">
-          <label className="font-medium">Difficulty Level</label>
+        <div>
+          <label className="font-semibold">Level</label>
           <select
             name="level"
             onChange={handleChange}
-            className="w-full p-3 border rounded bg-white"
+            className="w-full p-3 border rounded"
             required
           >
-            <option value="">Select a level</option>
+            <option value="">Select Level</option>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
           </select>
         </div>
 
-        {/* Image Upload */}
-        <div className="flex flex-col space-y-1">
-          <label className="font-medium">Upload Image</label>
-          <input
-            type="file"
-            onChange={handleImage}
-            className="w-full p-2 border rounded"
-          />
-
-          {image && (
-            <img
-              src={image}
-              alt="preview"
-              className="w-full h-48 object-cover rounded mt-3 shadow"
-            />
-          )}
+        <div>
+          <label className="font-semibold">Upload Image</label>
+          <input type="file" onChange={handleImage} className="w-full p-2" />
         </div>
 
-        {/* Submit Button */}
+        {image && (
+          <img
+            src={image}
+            className="w-full h-40 object-cover rounded mt-3 shadow"
+          />
+        )}
+
         <button
           type="submit"
           className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 shadow"
