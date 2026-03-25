@@ -42,4 +42,18 @@ public class LessonController {
                 .map(ResponseEntity::ok) // return 200 + lesson
                 .orElse(ResponseEntity.notFound().build()); // return 404
     }
+    @PutMapping("/{id}")
+    public Lesson updateLesson(@PathVariable String id, @RequestBody Lesson updatedLesson) {
+        return lessonRepository.findById(id).map(lesson -> {
+
+            lesson.setTitle(updatedLesson.getTitle());
+            lesson.setDescription(updatedLesson.getDescription());
+            lesson.setContent(updatedLesson.getContent());
+            lesson.setCategory(updatedLesson.getCategory());
+            lesson.setLevel(updatedLesson.getLevel());
+            lesson.setImageUrl(updatedLesson.getImageUrl());
+
+            return lessonRepository.save(lesson);
+        }).orElse(null);
+    }
 }

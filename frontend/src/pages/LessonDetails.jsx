@@ -39,6 +39,12 @@ const LessonDetails = () => {
       >
         ⬅ Back to Lessons
       </button>
+      <button
+        onClick={() => navigate(`/lessons/${id}/edit`)}
+        className="mb-4 px-4 py-2 bg-yellow-400 rounded hover:bg-yellow-500 ml-3"
+      >
+        ✏ Edit Lesson
+      </button>
 
       <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="flex flex-col md:flex-row gap-6 items-start">
