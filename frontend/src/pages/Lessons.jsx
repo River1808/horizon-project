@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
 
   const { searchTerm } = useSearch();
   const navigate = useNavigate();
@@ -13,10 +14,21 @@ const Lessons = () => {
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/lessons`)
-      .then((res) => setLessons(res.data));
+      .then((res) => {
+        setLessons(res.data);
+        setLoading(false);
+      });
   }, []);
 
-  // Combined Search + Category Filter
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-lg font-semibold">
+        Loading lessons pls wait for 2mins or create a lessons. 
+      </div>
+    );
+  }
+
+
   const filteredLessons = lessons.filter((lesson) => {
     const matchesSearch =
       lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
