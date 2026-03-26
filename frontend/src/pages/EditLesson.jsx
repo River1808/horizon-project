@@ -45,7 +45,7 @@ const EditLesson = () => {
     formData.append("file", newImage);
 
     const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/upload`,
+      `${import.meta.env.VITE_API_URL}/api/lessons/upload`,
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );
