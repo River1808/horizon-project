@@ -66,26 +66,29 @@ const Questionnaire = () => {
         {/* QUIZ SECTION */}
         {!loading && !result && (
           <div className="max-w-2xl mx-auto">
-            {questions.map((q) => (
-              <div key={q._id} className="mb-6 bg-gray-50 p-6 rounded-lg shadow-md">
-                <p className="text-lg font-semibold mb-4">{q.question}</p>
+            {questions.map((q) => {
+              const questionId = q.id || q._id;
+              return (
+                <div key={questionId} className="mb-6 bg-gray-50 p-6 rounded-lg shadow-md">
+                  <p className="text-lg font-semibold mb-4">{q.question}</p>
 
-                {q.options.map((opt, idx) => (
-                  <label key={idx} className="block mb-2">
-                    <input
-                      type="radio"
-                      name={q._id}
-                      value={opt.text}
-                      onChange={(e) =>
-                        setAnswers({ ...answers, [q._id]: e.target.value })
-                      }
-                      className="mr-2"
-                    />
-                    {opt.text}
-                  </label>
-                ))}
-              </div>
-            ))}
+                  {q.options.map((opt, idx) => (
+                    <label key={idx} className="block mb-2">
+                      <input
+                        type="radio"
+                        name={questionId}
+                        value={opt.text}
+                        onChange={(e) =>
+                          setAnswers({ ...answers, [questionId]: e.target.value })
+                        }
+                        className="mr-2"
+                      />
+                      {opt.text}
+                    </label>
+                  ))}
+                </div>
+              );
+            })}
 
             <div className="text-center">
               <button

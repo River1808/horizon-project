@@ -6,7 +6,6 @@ const QuestionsList = () => {
   const [questions, setQuestions] = useState([]);
   const navigate = useNavigate();
 
-  // Load all questions
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/questions`)
@@ -19,7 +18,7 @@ const QuestionsList = () => {
 
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/questions/${id}`);
-      setQuestions((prev) => prev.filter((q) => q._id !== id));
+      setQuestions((prev) => prev.filter((q) => (q.id || q._id) !== id));
     } catch (err) {
       console.error(err);
       alert("Error deleting question");
@@ -40,40 +39,43 @@ const QuestionsList = () => {
       </div>
 
       <div className="space-y-4">
-        {questions.map((q) => (
-          <div
-            key={q._id}
-            className="bg-white shadow p-4 rounded flex justify-between items-center"
-          >
-            <div>
-              <p className="font-semibold">{q.question}</p>
-              <ul className="ml-4 text-gray-600 text-sm">
-                {q.options.map((opt, i) => (
-                  <li key={i}>
-                    {opt.text} {opt.correct ? "⭐" : ""}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {questions.map((q, index) => {
+          const questionId = q.id || q._id || index;
 
-            {/* Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => navigate(`/edit-question/${q._id}`)}
-                className="bg-blue-500 text-white px-3 py-1 rounded"
-              >
-                Edit
-              </button>
+          return (
+            <div
+              key={questionId}
+              className="bg-white shadow p-4 rounded flex justify-between items-center"
+            >
+              <div>
+                <p className="font-semibold">{q.question}</p>
+                <ul className="ml-4 text-gray-600 text-sm">
+                  {q.options.map((opt, i) => (
+                    <li key={i}>
+                      {opt.text} {opt.correct ? "⭐" : ""}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-              <button
-                onClick={() => deleteQuestion(q._id)}
-                className="bg-red-500 text-white px-3 py-1 rounded"
-              >
-                Delete
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigate(`/edit-question/${questionId}`)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => deleteQuestion(questionId)}
+                  className="bg-red-500 text-white px-3 py-1 rounded"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
