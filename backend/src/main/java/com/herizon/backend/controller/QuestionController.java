@@ -52,6 +52,35 @@ public class QuestionController {
 
         return result;
     }
+
+    // Get one question by id
+    @GetMapping("/questions/{id}")
+    public Question getQuestionById(@PathVariable String id) {
+        return questionRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Question not found: " + id));
+    }
+
+    // Update existing question
+    @PutMapping("/questions/{id}")
+    public Question updateQuestion(@PathVariable String id, @RequestBody Question updated) {
+        Question existing = questionRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Question not found: " + id));
+
+        existing.setQuestion(updated.getQuestion());
+        existing.setOptions(updated.getOptions());
+
+        return questionRepository.save(existing);
+    }
+
+    // Delete question
+    @DeleteMapping("/questions/{id}")
+    public void deleteQuestion(@PathVariable String id) {
+        if (!questionRepository.existsById(id)) {
+            throw new NoSuchElementException("Question not found: " + id);
+        }
+        questionRepository.deleteById(id);
+    }
+
     @PostMapping
     public Question addQuestion(@RequestBody Question question) {
         return questionRepository.save(question);
