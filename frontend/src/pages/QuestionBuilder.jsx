@@ -1,99 +1,109 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 
-const QuestionBuilder = ({ onCompleted }) => {
+const QuestionBuilder = () => {
+  const { id } = useParams(); // undefined if creating new
+  const navigate = useNavigate();
+
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState([{ text: "", correct: false }]);
 
-  // Add a new empty option
+  // Load existing question if editing
+  useEffect(() => {
+    if (!id) return;
+
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/api/questions/${id}`)
+      .then((res) => {
+        setQuestion(res.data.question);
+        setOptions(res.data.options);
+      })
+      .catch(() => alert("Error loading question"));
+  }, [id]);
+
   const addOption = () => {
     setOptions([...options, { text: "", correct: false }]);
   };
 
-  // Update an option's text
   const updateOption = (index, value) => {
-    const newOptions = [...options];
-    newOptions[index].text = value;
-    setOptions(newOptions);
+    const updated = [...options];
+    updated[index].text = value;
+    setOptions(updated);
   };
 
-  // Set which option is correct
   const setCorrectOption = (index) => {
-    const newOptions = options.map((opt, i) => ({
-      ...opt,
-      correct: i === index // only one correct
-    }));
-    setOptions(newOptions);
+    setOptions(
+      options.map((opt, i) => ({
+        ...opt,
+        correct: i === index,
+      }))
+    );
   };
 
-  // Remove option
   const removeOption = (index) => {
-    if (options.length === 1) return; // must keep at least 1
+    if (options.length <= 1) return;
     setOptions(options.filter((_, i) => i !== index));
   };
 
-  // Submit to backend
   const handleSubmit = async () => {
-    if (!question.trim()) return alert("Question cannot be empty!");
-    if (options.some((opt) => !opt.text.trim()))
-      return alert("All options must have text.");
-    if (!options.some((opt) => opt.correct))
-      return alert("Select a correct answer.");
+    if (!question.trim()) return alert("Question cannot be empty");
+    if (options.some((o) => !o.text.trim()))
+      return alert("Options cannot be empty");
+    if (!options.some((o) => o.correct))
+      return alert("Select the correct answer");
 
     const payload = { question, options };
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/questions`, payload);
+      if (id) {
+        // UPDATE EXISTING
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/questions/${id}`, payload);
+        alert("Question updated!");
+      } else {
+        // CREATE NEW
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/questions`, payload);
+        alert("Question created!");
+      }
 
-      alert("Question saved!");
-
-      // Notify parent page (for redirection)
-      if (onCompleted) onCompleted();
-
-      // Reset fields
-      setQuestion("");
-      setOptions([{ text: "", correct: false }]);
-    } catch (error) {
-      console.error(error);
-      alert("Error saving question.");
+      navigate("/questions");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving question");
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white shadow-lg p-8 rounded-xl">
-      <h1 className="text-3xl font-bold mb-6">Create a Question</h1>
+    <div className="max-w-3xl mx-auto bg-white p-6 shadow rounded">
+      <h1 className="text-3xl font-bold mb-6">
+        {id ? "Edit Question" : "Create Question"}
+      </h1>
 
-      {/* Question Input */}
       <input
         type="text"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Enter question..."
         className="w-full border p-3 rounded mb-6"
+        placeholder="Enter question"
       />
 
-      {/* Options */}
       <div className="space-y-4">
-        {options.map((opt, index) => (
-          <div key={index} className="flex items-center gap-3">
+        {options.map((opt, i) => (
+          <div key={i} className="flex items-center gap-3">
             <input
               type="radio"
               checked={opt.correct}
-              onChange={() => setCorrectOption(index)}
+              onChange={() => setCorrectOption(i)}
             />
-
             <input
               type="text"
               value={opt.text}
-              placeholder={`Option ${index + 1}`}
-              onChange={(e) => updateOption(index, e.target.value)}
               className="flex-1 border p-2 rounded"
+              onChange={(e) => updateOption(i, e.target.value)}
             />
-
-            {/* Remove option */}
             <button
-              onClick={() => removeOption(index)}
-              className="px-3 py-1 bg-red-500 text-white rounded"
+              onClick={() => removeOption(i)}
+              className="bg-red-500 text-white px-3 py-1 rounded"
             >
               -
             </button>
@@ -101,20 +111,18 @@ const QuestionBuilder = ({ onCompleted }) => {
         ))}
       </div>
 
-      {/* Add Option */}
       <button
         onClick={addOption}
-        className="mt-4 bg-green-500 text-white px-4 py-2 rounded"
+        className="mt-4 bg-gray-300 px-4 py-2 rounded"
       >
         + Add Option
       </button>
 
-      {/* Submit */}
       <button
         onClick={handleSubmit}
-        className="block mt-8 bg-purple-600 text-white px-8 py-3 rounded-full mx-auto"
+        className="block mt-8 bg-purple-600 text-white px-8 py-3 rounded mx-auto"
       >
-        Save Question
+        {id ? "Update Question" : "Save Question"}
       </button>
     </div>
   );

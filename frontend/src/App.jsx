@@ -13,6 +13,7 @@ import LessonDetails from "./pages/LessonDetails";
 import EditLesson from "./pages/EditLesson";
 import QuestionBuilder from "./pages/QuestionBuilder";
 import CreateQuestionnaire from "./pages/CreateQuestionnaire";
+import QuestionsList from "./pages/QuestionsList";
 function App() {
   return (
     <SearchProvider>
@@ -31,8 +32,9 @@ function App() {
               <Route path="/create-lesson" element={<CreateLesson />} />
               <Route path="/lessons/:id" element={<LessonDetails />} />
               <Route path="/lessons/:id/edit" element={<EditLesson />} />
-              <Route path="/admin/questions" element={<QuestionBuilder />} />
-              <Route path="/create-question" element={<CreateQuestionnaire />} />
+              <Route path="/admin/questions" element={<QuestionsList />} />
+              <Route path="/create-question" element={<QuestionBuilder />} />
+              <Route path="/edit-question/:id" element={<QuestionBuilder />} />
             </Routes>
           </main>
           <footer className="footer">
