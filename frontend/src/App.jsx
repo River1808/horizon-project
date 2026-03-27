@@ -13,7 +13,7 @@ import LessonDetails from "./pages/LessonDetails";
 import EditLesson from "./pages/EditLesson";
 import QuestionBuilder from "./pages/QuestionBuilder";
 import CreateQuestionnaire from "./pages/CreateQuestionnaire";
-import QuestionsList from "./pages/QuestionsList";
+import QuestionsList from "./pages/QuestionList";
 function App() {
   return (
     <SearchProvider>
