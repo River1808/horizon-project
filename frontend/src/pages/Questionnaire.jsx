@@ -39,13 +39,20 @@ const Questionnaire = () => {
           🧠 Career Discovery Questionnaire
         </h1>
 
-        {/* CREATE QUESTION BUTTON */}
-        <div className="mb-10 text-center">
+        {/* ADMIN CONTROLS (CREATE + EDIT) */}
+        <div className="mb-10 text-center flex justify-center gap-4">
           <button
             onClick={() => navigate("/create-question")}
             className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition"
           >
             ➕ Create New Question
+          </button>
+
+          <button
+            onClick={() => navigate("/admin/questions")}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+          >
+            ✏️ Edit Questions
           </button>
         </div>
 
