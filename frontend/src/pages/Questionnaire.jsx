@@ -5,6 +5,7 @@ const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // New Question State
   const [newQuestion, setNewQuestion] = useState("");
@@ -15,7 +16,8 @@ const Questionnaire = () => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/questions`)
       .then((res) => setQuestions(res.data))
-      .catch((err) => console.error("Error fetching questions:", err));
+      .catch((err) => console.error("Error fetching questions:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   // Submit answers
@@ -25,13 +27,11 @@ const Questionnaire = () => {
         userName: "Guest",
         answers,
       })
-      .then((res) => {
-        setResult(res.data); // score + total
-      })
+      .then((res) => setResult(res.data))
       .catch((err) => console.error("Submit error:", err));
   };
 
-  // Add new option
+  // Add option
   const addOption = () => {
     setNewOptions([...newOptions, { text: "", correct: false }]);
   };
@@ -45,26 +45,41 @@ const Questionnaire = () => {
 
   // Mark correct answer
   const markCorrect = (idx) => {
-    const updated = newOptions.map((opt, i) => ({
-      ...opt,
-      correct: i === idx, // only one correct
-    }));
-    setNewOptions(updated);
+    setNewOptions(
+      newOptions.map((opt, i) => ({
+        ...opt,
+        correct: i === idx,
+      }))
+    );
   };
 
-  // Submit new question
+  // Save new question
   const saveQuestion = () => {
+    if (!newQuestion.trim()) {
+      alert("Question text is required.");
+      return;
+    }
+
+    if (newOptions.some((opt) => !opt.text.trim())) {
+      alert("All choices must have text.");
+      return;
+    }
+
+    if (!newOptions.some((opt) => opt.correct)) {
+      alert("Please select the correct answer.");
+      return;
+    }
+
     axios
       .post(`${import.meta.env.VITE_API_URL}/api/questions`, {
         question: newQuestion,
         options: newOptions,
       })
       .then(() => {
-        alert("Question added!");
+        alert("Question added successfully!");
         setNewQuestion("");
         setNewOptions([{ text: "", correct: false }]);
 
-        // Refresh list
         return axios.get(`${import.meta.env.VITE_API_URL}/api/questions`);
       })
       .then((res) => setQuestions(res.data))
@@ -80,7 +95,7 @@ const Questionnaire = () => {
           🧠 Career Discovery Questionnaire
         </h1>
 
-        {/* ADD QUESTION PANEL */}
+        {/* ADD QUESTION */}
         <div className="bg-blue-50 p-6 rounded-lg mb-10">
           <h2 className="text-xl font-bold mb-4">Add New Question</h2>
 
@@ -103,6 +118,7 @@ const Questionnaire = () => {
                 onChange={(e) => updateOptionText(idx, e.target.value)}
                 className="flex-1 p-2 border rounded"
               />
+
               <input
                 type="radio"
                 name="correctOption"
@@ -128,21 +144,28 @@ const Questionnaire = () => {
           </button>
         </div>
 
+        {/* LOADING */}
+        {loading && (
+          <div className="text-center text-lg font-semibold py-10">
+            Loading questions...
+          </div>
+        )}
+
         {/* QUIZ SECTION */}
-        {!result ? (
+        {!loading && !result && (
           <div className="max-w-2xl mx-auto">
             {questions.map((q) => (
-              <div key={q.id} className="mb-6 bg-gray-50 p-6 rounded-lg shadow-md">
+              <div key={q._id} className="mb-6 bg-gray-50 p-6 rounded-lg shadow-md">
                 <p className="text-lg font-semibold mb-4">{q.question}</p>
 
                 {q.options.map((opt, idx) => (
                   <label key={idx} className="block mb-2">
                     <input
                       type="radio"
-                      name={q.id}
+                      name={q._id}
                       value={opt.text}
                       onChange={(e) =>
-                        setAnswers({ ...answers, [q.id]: e.target.value })
+                        setAnswers({ ...answers, [q._id]: e.target.value })
                       }
                       className="mr-2"
                     />
@@ -161,7 +184,10 @@ const Questionnaire = () => {
               </button>
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* RESULT */}
+        {result && (
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-4">
               Your Score: {result.score} / {result.total}
