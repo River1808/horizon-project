@@ -32,7 +32,7 @@ function App() {
               <Route path="/lessons/:id" element={<LessonDetails />} />
               <Route path="/lessons/:id/edit" element={<EditLesson />} />
               <Route path="/admin/questions" element={<QuestionBuilder />} />
-              <Route path="/create-questionnaire" element={<CreateQuestionnaire />} />
+              <Route path="/create-question" element={<CreateQuestionnaire />} />
             </Routes>
           </main>
           <footer className="footer">

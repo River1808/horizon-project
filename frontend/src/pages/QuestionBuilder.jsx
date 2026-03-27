@@ -1,50 +1,62 @@
 import { useState } from "react";
 import axios from "axios";
 
-const QuestionBuilder = () => {
+const QuestionBuilder = ({ onCompleted }) => {
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState([{ text: "", correct: false }]);
 
+  // Add a new empty option
   const addOption = () => {
     setOptions([...options, { text: "", correct: false }]);
   };
 
+  // Update an option's text
   const updateOption = (index, value) => {
     const newOptions = [...options];
     newOptions[index].text = value;
     setOptions(newOptions);
   };
 
+  // Set which option is correct
   const setCorrectOption = (index) => {
     const newOptions = options.map((opt, i) => ({
       ...opt,
-      correct: i === index
+      correct: i === index // only one correct
     }));
     setOptions(newOptions);
   };
 
+  // Remove option
   const removeOption = (index) => {
-    if (options.length === 1) return; // must have ≥ 1 option
+    if (options.length === 1) return; // must keep at least 1
     setOptions(options.filter((_, i) => i !== index));
   };
 
+  // Submit to backend
   const handleSubmit = async () => {
     if (!question.trim()) return alert("Question cannot be empty!");
-    if (options.some((opt) => !opt.text.trim())) return alert("All options must have text.");
-    if (!options.some((opt) => opt.correct)) return alert("Select a correct answer.");
+    if (options.some((opt) => !opt.text.trim()))
+      return alert("All options must have text.");
+    if (!options.some((opt) => opt.correct))
+      return alert("Select a correct answer.");
 
-    const payload = {
-      question,
-      options
-    };
+    const payload = { question, options };
 
-    await axios.post(`${import.meta.env.VITE_API_URL}/api/questions`, payload);
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/questions`, payload);
 
-    alert("Question saved!");
+      alert("Question saved!");
 
-    // Reset form
-    setQuestion("");
-    setOptions([{ text: "", correct: false }]);
+      // Notify parent page (for redirection)
+      if (onCompleted) onCompleted();
+
+      // Reset fields
+      setQuestion("");
+      setOptions([{ text: "", correct: false }]);
+    } catch (error) {
+      console.error(error);
+      alert("Error saving question.");
+    }
   };
 
   return (
