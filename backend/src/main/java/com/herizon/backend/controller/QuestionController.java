@@ -52,4 +52,8 @@ public class QuestionController {
 
         return result;
     }
+    @PostMapping
+    public Question addQuestion(@RequestBody Question question) {
+        return questionRepository.save(question);
+    }
 }
