@@ -66,7 +66,7 @@ const QuestionBuilder = () => {
         alert("Question created!");
       }
 
-      navigate("/questions");
+      navigate("/questionnaire");
     } catch (err) {
       console.error(err);
       alert("Error saving question");
