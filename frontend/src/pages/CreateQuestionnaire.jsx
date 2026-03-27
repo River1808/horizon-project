@@ -1,4 +1,4 @@
-import QuestionBuilder from "../../components/QuestionBuilder";
+import QuestionBuilder from "./QuestionBuilder";
 import { useNavigate } from "react-router-dom";
 
 const CreateQuestion = () => {
