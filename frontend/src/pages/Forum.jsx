@@ -141,57 +141,67 @@ export default function Forum() {
           <h2>Thảo luận gần đây</h2>
 
           {posts.map((post) => (
-            <div
-              key={post.id}
-              className="post-card"
-              onClick={() => openPost(post)}
-            >
-              <h3>{post.title}</h3>
-              <p>{post.content.substring(0, 120)}...</p>
-              <span className="post-author">👤 {post.author}</span>
+            <div key={post.id} className="post-wrapper">
+
+              {/* POST CARD */}
+              <div
+                className="post-card"
+                onClick={() => openPost(post)}
+              >
+                <h3>{post.title}</h3>
+                <p>{post.content.substring(0, 120)}...</p>
+                <span className="post-author">👤 {post.author}</span>
+              </div>
+
+              {/* 🔽 POST DETAILS BELOW CLICKED POST */}
+              {selectedPost?.id === post.id && (
+                <div className="post-detail">
+
+                  <h2>{selectedPost.title}</h2>
+                  <p className="post-author">👤 {selectedPost.author}</p>
+
+                  <p className="post-content-full">
+                    {selectedPost.content}
+                  </p>
+
+                  <h3>Bình luận</h3>
+
+                  <div className="comment-list">
+                    {comments.map((c) => (
+                      <div key={c.id} className="comment">
+                        <b>👤 {c.author}</b>
+                        <p>{c.content}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add Comment */}
+                  <form className="comment-form" onSubmit={addComment}>
+                    <textarea
+                      placeholder="Viết bình luận..."
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      required
+                    />
+
+                    <button type="submit" className="add-comment-btn">
+                      Gửi bình luận
+                    </button>
+                  </form>
+
+                  <button
+                    className="close-post-btn"
+                    onClick={() => setSelectedPost(null)}
+                  >
+                    Đóng bài viết
+                  </button>
+
+                </div>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Post Detail */}
-        {selectedPost && (
-          <div className="post-detail">
-
-            <h2>{selectedPost.title}</h2>
-            <p className="post-author">👤 {selectedPost.author}</p>
-
-            <p className="post-content-full">{selectedPost.content}</p>
-
-            <h3>Bình luận</h3>
-
-            <div className="comment-list">
-              {comments.map((c) => (
-                <div key={c.id} className="comment">
-                  <b>👤 {c.author}</b>
-                  <p>{c.content}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Add Comment */}
-            <form className="comment-form" onSubmit={addComment}>
-              <textarea
-                placeholder="Viết bình luận..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                required
-              />
-
-              <button type="submit" className="add-comment-btn">
-                Gửi bình luận
-              </button>
-            </form>
-
-            <button className="close-post-btn" onClick={() => setSelectedPost(null)}>
-              Đóng bài viết
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
