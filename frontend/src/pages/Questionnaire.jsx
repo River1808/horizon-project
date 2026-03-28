@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./Questionnaire.css"; // <-- NEW CSS FILE YOU WILL CREATE
 
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
@@ -10,7 +11,6 @@ const Questionnaire = () => {
 
   const navigate = useNavigate();
 
-  // Load all questions
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/questions`)
@@ -19,7 +19,6 @@ const Questionnaire = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Submit answers
   const handleSubmit = () => {
     axios
       .post(`${import.meta.env.VITE_API_URL}/api/questionnaire/submit`, {
@@ -31,49 +30,50 @@ const Questionnaire = () => {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="questionnaire-page">
 
-        {/* TITLE */}
-        <h1 className="text-4xl font-bold text-center mb-10">
-          🧠 Career Discovery Questionnaire
-        </h1>
+      {/* ⭐ HERO SECTION */}
+      <section className="questionnaire-hero">
+        <div className="hero-text">
+          <h1>Khám phá hướng đi nghề nghiệp của bạn</h1>
+          <p>Trả lời các câu hỏi để tìm ra thế mạnh & sở thích của bạn.</p>
+        </div>
 
-        {/* ADMIN CONTROLS (CREATE + EDIT) */}
-        <div className="mb-10 text-center flex justify-center gap-4">
-          <button
-            onClick={() => navigate("/create-question")}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition"
-          >
+        <div className="hero-img">
+          <img src="/questionnaire.svg" alt="questionnaire" />
+        </div>
+      </section>
+
+      {/* MAIN CARD */}
+      <div className="questionnaire-container">
+
+        {/* ADMIN BUTTONS */}
+        <div className="admin-buttons">
+          <button onClick={() => navigate("/create-question")} className="green-btn">
             ➕ Create New Question
           </button>
 
-          <button
-            onClick={() => navigate("/admin/questions")}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-          >
+          <button onClick={() => navigate("/admin/questions")} className="blue-btn">
             ✏️ Edit Questions
           </button>
         </div>
 
         {/* LOADING */}
         {loading && (
-          <div className="text-center text-lg font-semibold py-10">
-            Loading questions...
-          </div>
+          <div className="loading-text">Loading questions...</div>
         )}
 
-        {/* QUIZ SECTION */}
+        {/* QUESTION LIST */}
         {!loading && !result && (
-          <div className="max-w-2xl mx-auto">
+          <div className="question-list">
             {questions.map((q) => {
               const questionId = q.id || q._id;
               return (
-                <div key={questionId} className="mb-6 bg-gray-50 p-6 rounded-lg shadow-md">
-                  <p className="text-lg font-semibold mb-4">{q.question}</p>
+                <div key={questionId} className="question-card">
+                  <p className="question-title">{q.question}</p>
 
                   {q.options.map((opt, idx) => (
-                    <label key={idx} className="block mb-2">
+                    <label key={idx} className="option-item">
                       <input
                         type="radio"
                         name={questionId}
@@ -81,7 +81,6 @@ const Questionnaire = () => {
                         onChange={(e) =>
                           setAnswers({ ...answers, [questionId]: e.target.value })
                         }
-                        className="mr-2"
                       />
                       {opt.text}
                     </label>
@@ -90,11 +89,8 @@ const Questionnaire = () => {
               );
             })}
 
-            <div className="text-center">
-              <button
-                onClick={handleSubmit}
-                className="bg-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-purple-700 transition"
-              >
+            <div className="submit-wrapper">
+              <button onClick={handleSubmit} className="submit-btn">
                 Submit
               </button>
             </div>
@@ -103,13 +99,11 @@ const Questionnaire = () => {
 
         {/* RESULT */}
         {result && (
-          <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">
+          <div className="result-box">
+            <h2>
               Your Score: {result.score} / {result.total}
             </h2>
-            <p className="text-lg">
-              Great job! Keep learning and improving your skills.
-            </p>
+            <p>Great job! Keep learning and improving your skills.</p>
           </div>
         )}
       </div>
