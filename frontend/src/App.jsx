@@ -14,6 +14,9 @@ import EditLesson from "./pages/EditLesson";
 import QuestionBuilder from "./pages/QuestionBuilder";
 import CreateQuestionnaire from "./pages/CreateQuestionnaire";
 import QuestionsList from "./pages/QuestionList";
+import CreateChallenge from "./pages/CreateChallenge";
+import ChallengeDetails from "./pages/ChallengeDetails";
+import EditChallenge from "./pages/EditChallenge"; 
 function App() {
   return (
     <SearchProvider>
@@ -35,6 +38,10 @@ function App() {
               <Route path="/admin/questions" element={<QuestionsList />} />
               <Route path="/create-question" element={<QuestionBuilder />} />
               <Route path="/edit-question/:id" element={<QuestionBuilder />} />
+              <Route path="/challenges" element={<Challenges />} />
+              <Route path="/create-challenge" element={<CreateChallenge />} />
+              <Route path="/challenges/:id" element={<ChallengeDetails />} />
+              <Route path="/challenges/:id/edit" element={<EditChallenge />} />
             </Routes>
           </main>
           <footer className="footer">
