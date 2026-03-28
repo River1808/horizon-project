@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const categories = ["Science", "Technology", "Engineering", "Art", "Math"];
+const categories = ["Math", "Science", "Tech", "Robotics", "Basic Knowledge"];
 const levels = ["Beginner", "Intermediate", "Advanced"];
 
 const EditLesson = () => {
