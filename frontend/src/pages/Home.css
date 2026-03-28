@@ -217,7 +217,8 @@
 /* ------------------------------------------------------ */
 
 .lessons-more {
-  margin-top: 40px;
+  margin-top: 50px;      /* space above the button */
+  text-align: center;    /* centers the button */
 }
 
 .more-btn {
