@@ -2,43 +2,91 @@ package com.herizon.backend.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.util.List;
+import org.springframework.data.annotation.CreatedDate;
+
+import java.util.Date;
 
 @Document(collection = "challenges")
 public class Challenge {
+
     @Id
     private String id;
+
     private String title;
+    private String category;
+    private String level;
     private String description;
-    private List<String> materials;
-    private String instructions;
-    private String difficulty;
-    private String estimatedTime;
+    private String content;
+    private String imageUrl;
+
+    @CreatedDate
+    private Date createdAt;   // ✅ automatically filled by MongoDB
 
     public Challenge() {}
 
-    public Challenge(String title, String description, List<String> materials, String instructions, String difficulty, String estimatedTime) {
+    public Challenge(String title, String category, String level, String description, String content, String imageUrl) {
         this.title = title;
+        this.category = category;
+        this.level = level;
         this.description = description;
-        this.materials = materials;
-        this.instructions = instructions;
-        this.difficulty = difficulty;
-        this.estimatedTime = estimatedTime;
+        this.content = content;
+        this.imageUrl = imageUrl;
     }
 
-    // getters and setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public List<String> getMaterials() { return materials; }
-    public void setMaterials(List<String> materials) { this.materials = materials; }
-    public String getInstructions() { return instructions; }
-    public void setInstructions(String instructions) { this.instructions = instructions; }
-    public String getDifficulty() { return difficulty; }
-    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
-    public String getEstimatedTime() { return estimatedTime; }
-    public void setEstimatedTime(String estimatedTime) { this.estimatedTime = estimatedTime; }
+    // ====== GETTERS & SETTERS ======
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getContent() {
+        return content;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 }

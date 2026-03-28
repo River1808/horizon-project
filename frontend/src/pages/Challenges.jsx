@@ -1,36 +1,114 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useSearch } from '../contexts/SearchContext';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useSearch } from "../contexts/SearchContext";
+import { useNavigate } from "react-router-dom";
+import "./Challenges.css";
 
 const Challenges = () => {
   const [challenges, setChallenges] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+
   const { searchTerm } = useSearch();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/api/challenges`).then(res => setChallenges(res.data));
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/api/challenges`)
+      .then((res) => {
+        setChallenges(res.data);
+        setLoading(false);
+      });
   }, []);
 
-  const filteredChallenges = challenges.filter(challenge =>
-    challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    challenge.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        Loading challenges… Please wait.
+      </div>
+    );
+  }
+
+  const filteredChallenges = challenges.filter((challenge) => {
+    const matchesSearch =
+      challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      challenge.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      challenge.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory =
+      categoryFilter === "All" || challenge.category === categoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="container p-8">
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-center mb-12 title">🎯 STEAM Challenges</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          {filteredChallenges.map(challenge => (
-            <div key={challenge.id} className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-4xl mb-4">🧪</div>
-              <h2 className="text-xl font-semibold mb-2">{challenge.title}</h2>
-              <p className="text-gray-600 mb-2">{challenge.description}</p>
-              <p className="text-sm text-blue-600">Difficulty: {challenge.difficulty} | Time: {challenge.estimatedTime}</p>
-              <p className="text-sm text-gray-500">Materials: {challenge.materials.join(', ')}</p>
-            </div>
-          ))}
+    <div className="challenges-page">
+
+      {/* ⭐ Hero Section */}
+      <section className="challenges-hero">
+        <div className="challenges-hero-inner">
+
+          <div className="hero-text">
+            <h1>Khám phá các thử thách STEAM</h1>
+            <p>Tham gia, học hỏi và vượt qua những thử thách sáng tạo.</p>
+
+            <button
+              className="create-btn"
+              onClick={() => navigate("/create-challenge")}
+            >
+              ➕ Tạo thử thách mới
+            </button>
+          </div>
+
+          <div className="hero-image">
+            <img src="/challenge.png" alt="Challenges Hero" />
+          </div>
         </div>
+      </section>
+
+      {/* ⭐ Filter */}
+      <div className="filter-wrapper">
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="category-filter"
+        >
+          <option value="All">Tất cả</option>
+          <option value="Math">Math</option>
+          <option value="Natural Science">Natural Science</option>
+          <option value="Tech">Tech</option>
+          <option value="Robotics">Robotics</option>
+          <option value="Applied Science">Applied Science</option>
+          <option value="Basic Knowledge">Basic Knowledge</option>
+        </select>
       </div>
+
+      {/* ⭐ Grid */}
+      <div className="challenges-grid">
+        {filteredChallenges.map((challenge) => (
+          <div
+            key={challenge.id}
+            className="challenge-card"
+            onClick={() => navigate(`/challenges/${challenge.id}`)}
+          >
+            <img
+              src={challenge.imageUrl || "/placeholder.png"}
+              alt={challenge.title}
+              className="challenge-image"
+            />
+
+            <div className="challenge-info">
+              <h3>{challenge.title}</h3>
+              <p className="challenge-desc">{challenge.description}</p>
+
+              <p className="challenge-meta">
+                {challenge.category} • {challenge.level}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 };
