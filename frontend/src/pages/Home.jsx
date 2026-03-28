@@ -5,6 +5,7 @@ import "./Home.css";   // <-- add this line
 
 const Home = () => {
   const [lessons, setLessons] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState("All");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,13 +41,34 @@ const Home = () => {
         </div>
       </section>
       {/* ⭐ LESSONS FROM DATABASE */}
-      <section className="lessons-section">
-        <div className="lessons-container">
+      <section className="py-16 lessons-section">
+        <div className="max-w-6xl mx-auto px-6">
 
-          <h2 className="lessons-title">Bài học STEAM mới nhất</h2>
+          {/* TITLE */}
+          <h2 className="section-title">Bài học STEAM mới nhất</h2>
 
+          {/* ⬇️ MOVE FILTER HERE (below the title) */}
+          <div className="filter-wrapper">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="category-filter"
+            >
+              <option value="All">Tất cả chủ đề</option>
+              <option value="Math">Toán học</option>
+              <option value="Natural Science">Khoa học Tự nhiên</option>
+              <option value="Tech">Công nghệ</option>
+              <option value="Robotics">Robotics</option>
+              <option value="Applied Science">Khoa học Ứng dụng</option>
+              <option value="Basic Knowledge">Kiến thức Cơ bản</option>
+            </select>
+          </div>
+
+          {/* LESSON LIST */}
           {lessons.length === 0 ? (
-            <p className="lessons-empty">Hiện chưa có bài học. Hãy tạo bài học mới!</p>
+            <p className="text-center text-gray-700">
+              Hiện chưa có bài học. Hãy tạo bài học mới!
+            </p>
           ) : (
             <div className="lessons-grid">
               {lessons.slice(0, 6).map((lesson) => (
@@ -58,15 +80,13 @@ const Home = () => {
                   <img
                     src={lesson.imageUrl || "/placeholder.png"}
                     alt={lesson.title}
-                    className="lesson-image"
+                    className="lesson-img"
                   />
 
-                  <div className="lesson-info">
+                  <div className="lesson-content">
                     <h3>{lesson.title}</h3>
-
-                    <p className="lesson-desc">{lesson.description}</p>
-
-                    <p className="lesson-meta">
+                    <p className="desc">{lesson.description}</p>
+                    <p className="meta">
                       {lesson.category} • {lesson.level}
                     </p>
                   </div>
@@ -75,7 +95,8 @@ const Home = () => {
             </div>
           )}
 
-          <div className="lessons-more">
+          {/* VIEW MORE BUTTON */}
+          <div className="more-btn-container">
             <Link to="/lessons" className="more-btn">
               Xem thêm bài học →
             </Link>
