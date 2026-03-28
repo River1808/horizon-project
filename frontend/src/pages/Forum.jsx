@@ -59,9 +59,7 @@ export default function Forum() {
     try {
       await fetch(`${API_BASE}/posts`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newPost),
       });
 
@@ -84,9 +82,7 @@ export default function Forum() {
     try {
       await fetch(`${API_BASE}/posts/${selectedPost.id}/comments`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(comment),
       });
 
@@ -98,94 +94,105 @@ export default function Forum() {
   };
 
   return (
-    <div className="forum-container">
+    <div className="forum-page">
 
-      <h1>Community Forum</h1>
-      <p className="forum-description">
-        Ask questions, share ideas, and discuss STEAM topics.
-      </p>
+      {/* ⭐ HERO SECTION */}
+      <section className="forum-hero">
+        <div className="forum-hero-text">
+          <h1>Diễn đàn cộng đồng Herizon</h1>
+          <p>Chia sẻ ý tưởng, đặt câu hỏi và kết nối với cộng đồng STEAM.</p>
+        </div>
 
-      {/* Create Post */}
-      <div className="create-post">
-        <h2>Create a Post</h2>
+        <div className="forum-hero-img">
+          <img src="/forum.avif" alt="Forum" />
+        </div>
+      </section>
 
-        <form onSubmit={createPost}>
-          <input
-            type="text"
-            placeholder="Post Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
+      <div className="forum-container">
 
-          <textarea
-            placeholder="Write your question or idea..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-          />
+        {/* Create Post */}
+        <div className="create-post">
+          <h2>Tạo bài viết mới</h2>
 
-          <button type="submit">Submit Post</button>
-        </form>
-      </div>
-
-      {/* Posts List */}
-      <div className="post-list">
-        <h2>Recent Discussions</h2>
-
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            className="post-card"
-            onClick={() => openPost(post)}
-          >
-            <h3>{post.title}</h3>
-            <p>{post.content.substring(0, 100)}...</p>
-            <span className="author">by {post.author}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Post Detail */}
-      {selectedPost && (
-        <div className="post-detail">
-
-          <h2>{selectedPost.title}</h2>
-          <p className="post-author">by {selectedPost.author}</p>
-
-          <p>{selectedPost.content}</p>
-
-          <h3>Comments</h3>
-
-          <div className="comment-list">
-            {comments.map((c) => (
-              <div key={c.id} className="comment">
-                <b>{c.author}</b>
-                <p>{c.content}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Add Comment */}
-          <form className="comment-form" onSubmit={addComment}>
-            <textarea
-              placeholder="Write a comment..."
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
+          <form onSubmit={createPost}>
+            <input
+              type="text"
+              placeholder="Tiêu đề bài viết"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               required
             />
 
-            <button type="submit">Add Comment</button>
-          </form>
+            <textarea
+              placeholder="Viết nội dung..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+            />
 
-          <button
-            className="close-post"
-            onClick={() => setSelectedPost(null)}
-          >
-            Close
-          </button>
+            <button type="submit" className="submit-post-btn">
+              Đăng bài
+            </button>
+          </form>
         </div>
-      )}
+
+        {/* Posts List */}
+        <div className="post-list">
+          <h2>Thảo luận gần đây</h2>
+
+          {posts.map((post) => (
+            <div
+              key={post.id}
+              className="post-card"
+              onClick={() => openPost(post)}
+            >
+              <h3>{post.title}</h3>
+              <p>{post.content.substring(0, 120)}...</p>
+              <span className="post-author">👤 {post.author}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Post Detail */}
+        {selectedPost && (
+          <div className="post-detail">
+
+            <h2>{selectedPost.title}</h2>
+            <p className="post-author">👤 {selectedPost.author}</p>
+
+            <p className="post-content-full">{selectedPost.content}</p>
+
+            <h3>Bình luận</h3>
+
+            <div className="comment-list">
+              {comments.map((c) => (
+                <div key={c.id} className="comment">
+                  <b>👤 {c.author}</b>
+                  <p>{c.content}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Comment */}
+            <form className="comment-form" onSubmit={addComment}>
+              <textarea
+                placeholder="Viết bình luận..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                required
+              />
+
+              <button type="submit" className="add-comment-btn">
+                Gửi bình luận
+              </button>
+            </form>
+
+            <button className="close-post-btn" onClick={() => setSelectedPost(null)}>
+              Đóng bài viết
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

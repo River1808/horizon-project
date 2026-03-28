@@ -76,7 +76,7 @@ const Home = () => {
           {/* LESSON LIST */}
           {filteredLessons.length === 0 ? (
             <p className="text-center text-gray-700">
-              Hiện chưa có bài học phù hợp. Hãy thử chọn chủ đề khác hoặc tạo mới!
+              Hiện chưa có bài học phù hợp. Hãy thử chọn chủ đề khác hoặc tạo mới! (please wait for the lessons to load)
             </p>
           ) : (
             <div className="lessons-grid">
