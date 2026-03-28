@@ -1,48 +1,204 @@
-import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import axios from 'axios';
-import { useSearch } from '../contexts/SearchContext';
+import { useEffect, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
+import axios from "axios";
+import { useSearch } from "../contexts/SearchContext";
+import "leaflet/dist/leaflet.css";
+import "./MapPage.css";
+
+import L from "leaflet";
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
 
 const MapPage = () => {
   const [stations, setStations] = useState([]);
+  const [tempMarker, setTempMarker] = useState(null);
+  const [showPanel, setShowPanel] = useState(false);
+
+  const [form, setForm] = useState({
+    name: "",
+    address: "",
+    activity: "",
+    manager: "",
+    volunteersNeeded: "",
+  });
+
   const { searchTerm } = useSearch();
 
-  useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/api/stations`).then(res => setStations(res.data));
-  }, []);
-
-  const filteredStations = stations.filter(station =>
-    station.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    station.activities.some(activity => activity.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const handleVolunteer = (stationId) => {
-    axios.post(`${import.meta.env.VITE_API_URL}/api/stations/${stationId}/volunteer-request`, {userName: 'Guest', message: 'Interested in volunteering'});
-    alert('Volunteer request submitted!');
+  const loadStations = () => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/api/stations`)
+      .then((res) => setStations(res.data));
   };
 
+  useEffect(loadStations, []);
+
+  const MapClick = () => {
+    useMapEvents({
+      click(e) {
+        setTempMarker(e.latlng);
+        setShowPanel(true);
+      },
+    });
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    if (!tempMarker) return;
+
+    const payload = {
+      name: form.name,
+      address: form.address,
+      activities: [form.activity],
+      manager: form.manager,
+      volunteersNeeded: Number(form.volunteersNeeded),
+      location: {
+        lat: tempMarker.lat,
+        lng: tempMarker.lng,
+      },
+    };
+
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
+
+    // reset
+    setForm({
+      name: "",
+      address: "",
+      activity: "",
+      manager: "",
+      volunteersNeeded: "",
+    });
+    setTempMarker(null);
+    setShowPanel(false);
+    loadStations();
+  };
+
+  const handleVolunteer = (stationId) => {
+    axios.post(
+      `${import.meta.env.VITE_API_URL}/api/stations/${stationId}/volunteer-request`,
+      {
+        userName: "Guest",
+        message: "Interested in volunteering",
+      }
+    );
+
+    alert("Volunteer request submitted!");
+  };
+
+  const filteredStations = stations.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.activities.some((a) =>
+        a.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+  );
+
   return (
-    <div className="container p-8">
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-center mb-12 title">🗺️ STEAM Stations</h1>
-        <MapContainer center={[10.776, 106.700]} zoom={13} style={{height: '600px', borderRadius: '8px'}}>
+    <div className="map-container">
+      <div className="map-wrapper">
+        <MapContainer
+          center={[10.776, 106.7]}
+          zoom={13}
+          className="map"
+        >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {filteredStations.map(station => (
-            <Marker key={station.id} position={[station.location.lat, station.location.lng]}>
+          <MapClick />
+
+          {filteredStations.map((s) => (
+            <Marker
+              key={s.id}
+              position={[s.location.lat, s.location.lng]}
+            >
               <Popup>
-                <div className="text-center">
-                  <h3 className="font-semibold text-lg">{station.name}</h3>
-                  <p className="mb-2">Activities: {station.activities.join(', ')}</p>
-                  {station.volunteersNeeded && (
-                    <button onClick={() => handleVolunteer(station.id)} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">
-                      Request to Volunteer
-                    </button>
-                  )}
-                </div>
+                <h3>{s.name}</h3>
+                <p>📍 {s.address}</p>
+                <p>🎯 {s.activities.join(", ")}</p>
+                <p>👤 Manager: {s.manager}</p>
+                <button
+                  className="volunteer-btn"
+                  onClick={() => handleVolunteer(s.id)}
+                >
+                  Volunteer
+                </button>
               </Popup>
             </Marker>
           ))}
+
+          {tempMarker && <Marker position={tempMarker}></Marker>}
         </MapContainer>
+      </div>
+
+      {/* RIGHT PANEL */}
+      <div className={`side-panel ${showPanel ? "open" : ""}`}>
+        <button
+          className="close-btn"
+          onClick={() => {
+            setShowPanel(false);
+            setTempMarker(null);
+          }}
+        >
+          ✕
+        </button>
+        <h2>Create Station</h2>
+
+        <label>Station Name</label>
+        <input
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+
+        <label>Address</label>
+        <input
+          value={form.address}
+          onChange={(e) => setForm({ ...form, address: e.target.value })}
+        />
+
+        <label>Activity</label>
+        <textarea
+          value={form.activity}
+          onChange={(e) => setForm({ ...form, activity: e.target.value })}
+        />
+
+        <label>Manager Name</label>
+        <input
+          value={form.manager}
+          onChange={(e) => setForm({ ...form, manager: e.target.value })}
+        />
+
+        <label>Volunteers Needed</label>
+        <input
+          type="number"
+          value={form.volunteersNeeded}
+          onChange={(e) =>
+            setForm({ ...form, volunteersNeeded: e.target.value })
+          }
+        />
+
+        <button className="submit-btn" onClick={handleSubmit}>
+          Submit
+        </button>
+
+        <button
+          className="cancel-btn"
+          onClick={() => {
+            setShowPanel(false);
+            setTempMarker(null);
+          }}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );

@@ -1,0 +1,108 @@
+.map-container {
+  position: relative;
+  display: flex;
+  height: 100%;
+}
+
+.map-wrapper {
+  flex: 1;
+  padding: 20px;
+}
+
+.map {
+  height: 600px;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.side-panel {
+  position: fixed;
+  top: 0;
+  right: -380px;
+
+  width: 350px;
+  height: 100%;
+
+  background: white;
+  padding: 25px;
+
+  border-left: 2px solid #ccc;
+  box-shadow: -2px 0px 8px rgba(0, 0, 0, 0.2);
+
+  transition: right 0.3s ease;
+  overflow-y: auto;
+
+  z-index: 2000; /* <-- IMPORTANT: bring panel above the map */
+}
+
+.side-panel.open {
+  right: 0;
+}
+
+.side-panel h2 {
+  margin-bottom: 15px;
+}
+
+.side-panel label {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.side-panel input,
+.side-panel textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+}
+
+.submit-btn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  background: #2a7ae2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  background: #ddd;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.volunteer-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #444;
+
+  transition: 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #000;
+  transform: scale(1.1);
+}
