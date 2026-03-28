@@ -11,9 +11,18 @@ const Home = () => {
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/lessons`)
-      .then((res) => setLessons(res.data))
+      .then((res) => {
+        setLessons(res.data);
+      })
       .catch((err) => console.error(err));
   }, []);
+
+  const filteredLessons = lessons.filter((lesson) => {
+    const matchesCategory =
+      categoryFilter === "All" || lesson.category === categoryFilter;
+    return matchesCategory;
+  });
+
 
   return (
     <div className="home-container">
@@ -48,30 +57,30 @@ const Home = () => {
           <h2 className="section-title">Bài học STEAM mới nhất</h2>
 
           {/* ⬇️ MOVE FILTER HERE (below the title) */}
-          <div className="filter-wrapper">
+          <div className="mb-6 filter-wrapper">
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="category-filter"
+              className="p-3 border rounded-lg shadow-sm category-filter"
             >
-              <option value="All">Tất cả chủ đề</option>
-              <option value="Math">Toán học</option>
-              <option value="Natural Science">Khoa học Tự nhiên</option>
-              <option value="Tech">Công nghệ</option>
+              <option value="All">All Categories</option>
+              <option value="Math">Math</option>
+              <option value="Natural Science">Natural Science</option>
+              <option value="Tech">Tech</option>
               <option value="Robotics">Robotics</option>
-              <option value="Applied Science">Khoa học Ứng dụng</option>
-              <option value="Basic Knowledge">Kiến thức Cơ bản</option>
+              <option value="Applied Science">Applied Science</option>
+              <option value="Basic Knowledge">Basic Knowledge</option>
             </select>
           </div>
 
           {/* LESSON LIST */}
-          {lessons.length === 0 ? (
+          {filteredLessons.length === 0 ? (
             <p className="text-center text-gray-700">
-              Hiện chưa có bài học. Hãy tạo bài học mới!
+              Hiện chưa có bài học phù hợp. Hãy thử chọn chủ đề khác hoặc tạo mới!
             </p>
           ) : (
             <div className="lessons-grid">
-              {lessons.slice(0, 6).map((lesson) => (
+              {filteredLessons.slice(0, 6).map((lesson) => (
                 <div
                   key={lesson.id}
                   onClick={() => navigate(`/lessons/${lesson.id}`)}

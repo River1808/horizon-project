@@ -158,6 +158,32 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 30px;
+  justify-items: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.more-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+/* ensure button styling stays compatible */
+.more-btn {
+  display: inline-block;
+  background: #2563eb;
+  padding: 12px 30px;
+  border-radius: 30px;
+  color: white;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.more-btn:hover {
+  background: #1d4ed8;
 }
 
 /* ------------------------------------------------------ */
@@ -171,6 +197,8 @@
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  max-width: 350px;
+  width: 100%;
 }
 
 .lesson-card:hover {
@@ -184,12 +212,14 @@
   object-fit: cover;
 }
 
-.lesson-info {
+.lesson-info,
+.lesson-content {
   padding: 20px;
   text-align: left;
 }
 
-.lesson-info h3 {
+.lesson-info h3,
+.lesson-content h3 {
   font-size: 20px;
   font-weight: 700;
   color: #1f2937;
