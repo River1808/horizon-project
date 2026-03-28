@@ -156,11 +156,8 @@
 
 .lessons-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
-  justify-items: center;
-  width: 100%;
-  margin: 0 auto;
 }
 
 .more-btn-container {
@@ -193,53 +190,53 @@
 /* Ensure image size is consistent */
 .lesson-img {
   width: 100%;
-  height: 180px;        /* <-- force same height */
-  object-fit: cover;    /* <-- crop nicely */
-  border-radius: 10px 10px 0 0;
-  background-color: #f2f2f2;
+  height: 180px;               /* fixed height */
+  object-fit: cover;           /* crop nicely */
+  flex-shrink: 0;
 }
 
 /* Card layout fix */
 .lesson-card {
-  cursor: pointer;
   background: white;
-  border-radius: 12px;
+  border-radius: 15px;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  cursor: pointer;
+
+  /* FORCE ALL CARDS SAME HEIGHT */
+  height: 420px;               /* adjust if you want */
+  display: flex;
+  flex-direction: column;
 }
+
 
 .lesson-card:hover {
   transform: translateY(-5px);
 }
 .lesson-info,
 .lesson-content {
-  padding: 20px;
-  text-align: left;
+  padding: 15px;
+  flex: 1;                     /* pushes button area down */
 }
 
 .lesson-info h3,
 .lesson-content h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 10px;
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.lesson-desc {
-  font-size: 15px;
-  color: #6b7280;
-  margin-bottom: 12px;
-  display: -webkit-box;  
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.lesson-content .desc {
+  font-size: 14px;
+  color: #555;
+  height: 48px;               /* 2-line max */
   overflow: hidden;
 }
 
-.lesson-meta {
-  color: #2563eb;
-  font-weight: 600;
+.lesson-content .meta {
+  margin-top: 10px;
   font-size: 14px;
+  color: #777;
 }
 
 /* ------------------------------------------------------ */
