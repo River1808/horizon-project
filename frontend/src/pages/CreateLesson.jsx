@@ -100,10 +100,9 @@ const CreateLesson = () => {
           >
             <option value="">Select Category</option>
             <option>Math</option>
-            <option>Natural Science</option>
+            <option>Science</option>
             <option>Tech</option>
             <option>Robotics</option>
-            <option>Applied Science</option>
             <option>Basic Knowledge</option>
           </select>
         </div>

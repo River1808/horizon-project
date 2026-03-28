@@ -63,10 +63,10 @@ const Lessons = () => {
         >
           <option value="All">All Categories</option>
           <option value="Math">Math</option>
-          <option value="Natural Science">Natural Science</option>
+          <option value="Science">Natural Science</option>
           <option value="Tech">Tech</option>
           <option value="Robotics">Robotics</option>
-          <option value="Applied Science">Applied Science</option>
+          <option value="Science">Applied Science</option>
           <option value="Basic Knowledge">Basic Knowledge</option>
         </select>
       </div>
