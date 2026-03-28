@@ -17,6 +17,7 @@ import QuestionsList from "./pages/QuestionList";
 import CreateChallenge from "./pages/CreateChallenge";
 import ChallengeDetails from "./pages/ChallengeDetails";
 import EditChallenge from "./pages/EditChallenge"; 
+import EditMapPage from "./pages/EditMapPage";
 function App() {
   return (
     <SearchProvider>
@@ -42,6 +43,7 @@ function App() {
               <Route path="/create-challenge" element={<CreateChallenge />} />
               <Route path="/challenges/:id" element={<ChallengeDetails />} />
               <Route path="/challenges/:id/edit" element={<EditChallenge />} />
+              <Route path="/edit-station/:id" element={<EditMapPage />} />
             </Routes>
           </main>
           <footer className="footer">
