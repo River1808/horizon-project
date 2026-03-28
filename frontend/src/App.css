@@ -40,3 +40,7 @@
 .read-the-docs {
   color: #888;
 }
+/* Global font setup */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
