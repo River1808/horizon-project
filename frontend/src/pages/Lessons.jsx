@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearch } from "../contexts/SearchContext";
 import { useNavigate } from "react-router-dom";
-import "./lessons.css"; // <-- Add your CSS file
+import "./Lessons.css"; // <-- Add your CSS file
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
