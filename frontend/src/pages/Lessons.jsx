@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearch } from "../contexts/SearchContext";
 import { useNavigate } from "react-router-dom";
+import "./lessons.css"; // <-- Add your CSS file
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -22,12 +23,11 @@ const Lessons = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-20 text-lg font-semibold">
-        Loading lessons pls wait for 2mins or create a lessons. 
+      <div className="loading-screen">
+        Loading lessons… Please wait 2 minutes or create a lesson.
       </div>
     );
   }
-
 
   const filteredLessons = lessons.filter((lesson) => {
     const matchesSearch =
@@ -42,26 +42,38 @@ const Lessons = () => {
   });
 
   return (
-    <div className="container mx-auto p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800">📘 STEAM Lessons</h1>
+    <div className="lessons-page">
 
-        <button
-          onClick={() => navigate("/create-lesson")}
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow"
-        >
-          ➕ Create Lesson
-        </button>
-      </div>
+      {/* ⭐ Hero Section */}
+      <section className="lessons-hero">
+        <div className="lessons-hero-inner">
 
-      {/* 🔽 Category Filter */}
-      <div className="mb-6">
+          <div className="hero-text">
+            <h1>Khám phá kho bài học STEAM</h1>
+            <p>Tìm kiếm, học hỏi và sáng tạo với hàng trăm bài học chất lượng.</p>
+
+            <button
+              className="create-btn"
+              onClick={() => navigate("/create-lesson")}
+            >
+              ➕ Tạo bài học mới
+            </button>
+          </div>
+
+          <div className="hero-image">
+            <img src="/lesson.png" alt="Lessons Hero" />
+          </div>
+        </div>
+      </section>
+
+      {/* ⭐ Filter */}
+      <div className="filter-wrapper">
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="p-3 border rounded-lg shadow-sm"
+          className="category-filter"
         >
-          <option value="All">All Categories</option>
+          <option value="All">Tất cả</option>
           <option value="Math">Math</option>
           <option value="Science">Natural Science</option>
           <option value="Tech">Tech</option>
@@ -71,31 +83,32 @@ const Lessons = () => {
         </select>
       </div>
 
-      {/* 🔽 Lesson Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* ⭐ Lessons Grid */}
+      <div className="lessons-grid">
         {filteredLessons.map((lesson) => (
           <div
             key={lesson.id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition"
+            className="lesson-card"
             onClick={() => navigate(`/lessons/${lesson.id}`)}
           >
             <img
-              src={lesson.imageUrl || "https://via.placeholder.com/300"}
+              src={lesson.imageUrl || "/placeholder.png"}
               alt={lesson.title}
-              className="w-full h-40 object-cover"
+              className="lesson-image"
             />
 
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-2">{lesson.title}</h2>
-              <p className="text-gray-600 mb-3">{lesson.description}</p>
+            <div className="lesson-info">
+              <h3>{lesson.title}</h3>
+              <p className="lesson-desc">{lesson.description}</p>
 
-              <p className="text-sm text-blue-600 font-medium">
-                Category: {lesson.category} • Level: {lesson.level}
+              <p className="lesson-meta">
+                {lesson.category} • {lesson.level}
               </p>
             </div>
           </div>
         ))}
       </div>
+
     </div>
   );
 };
