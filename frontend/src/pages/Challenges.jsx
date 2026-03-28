@@ -18,16 +18,9 @@ const Challenges = () => {
       .then((res) => {
         setChallenges(res.data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
-
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        Loading challenges… Please wait.
-      </div>
-    );
-  }
 
   const filteredChallenges = challenges.filter((challenge) => {
     const matchesSearch =
@@ -61,7 +54,7 @@ const Challenges = () => {
           </div>
 
           <div className="hero-image">
-            <img src="/challenge.png" alt="Challenges Hero" />
+            <img src="/challenge.webp" alt="Challenges Hero" />
           </div>
         </div>
       </section>
@@ -83,31 +76,50 @@ const Challenges = () => {
         </select>
       </div>
 
+      {/* ⭐ Loading */}
+      {loading && (
+        <div className="loading-screen">
+          Loading challenges… Please wait.
+        </div>
+      )}
+
+      {/* ⭐ Empty State if DB has no challenges */}
+      {!loading && challenges.length === 0 && (
+        <div className="empty-message">
+          <p>Hiện chưa có thử thách nào.</p>
+          <button className="create-btn" onClick={() => navigate("/create-challenge")}>
+            ➕ Tạo thử thách đầu tiên
+          </button>
+        </div>
+      )}
+
       {/* ⭐ Grid */}
-      <div className="challenges-grid">
-        {filteredChallenges.map((challenge) => (
-          <div
-            key={challenge.id}
-            className="challenge-card"
-            onClick={() => navigate(`/challenges/${challenge.id}`)}
-          >
-            <img
-              src={challenge.imageUrl || "/placeholder.png"}
-              alt={challenge.title}
-              className="challenge-image"
-            />
+      {!loading && challenges.length > 0 && (
+        <div className="challenges-grid">
+          {filteredChallenges.map((challenge) => (
+            <div
+              key={challenge.id}
+              className="challenge-card"
+              onClick={() => navigate(`/challenges/${challenge.id}`)}
+            >
+              <img
+                src={challenge.imageUrl || "/placeholder.png"}
+                alt={challenge.title}
+                className="challenge-image"
+              />
 
-            <div className="challenge-info">
-              <h3>{challenge.title}</h3>
-              <p className="challenge-desc">{challenge.description}</p>
+              <div className="challenge-info">
+                <h3>{challenge.title}</h3>
+                <p className="challenge-desc">{challenge.description}</p>
 
-              <p className="challenge-meta">
-                {challenge.category} • {challenge.level}
-              </p>
+                <p className="challenge-meta">
+                  {challenge.category} • {challenge.level}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
     </div>
   );

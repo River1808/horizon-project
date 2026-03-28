@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearch } from "../contexts/SearchContext";
 import { useNavigate } from "react-router-dom";
-import "./Lessons.css"; // <-- Add your CSS file
+import "./Lessons.css";
 
 const Lessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -18,16 +18,9 @@ const Lessons = () => {
       .then((res) => {
         setLessons(res.data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
-
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        Loading lessons… Please wait 2 minutes or create a lesson.
-      </div>
-    );
-  }
 
   const filteredLessons = lessons.filter((lesson) => {
     const matchesSearch =
@@ -44,7 +37,7 @@ const Lessons = () => {
   return (
     <div className="lessons-page">
 
-      {/* ⭐ Hero Section */}
+      {/* ⭐ HERO SECTION ALWAYS SHOWS */}
       <section className="lessons-hero">
         <div className="lessons-hero-inner">
 
@@ -75,39 +68,61 @@ const Lessons = () => {
         >
           <option value="All">Tất cả</option>
           <option value="Math">Math</option>
-          <option value="Science">Natural Science</option>
+          <option value="Natural Science">Natural Science</option>
           <option value="Tech">Tech</option>
           <option value="Robotics">Robotics</option>
-          <option value="Science">Applied Science</option>
+          <option value="Applied Science">Applied Science</option>
           <option value="Basic Knowledge">Basic Knowledge</option>
         </select>
       </div>
 
-      {/* ⭐ Lessons Grid */}
-      <div className="lessons-grid">
-        {filteredLessons.map((lesson) => (
-          <div
-            key={lesson.id}
-            className="lesson-card"
-            onClick={() => navigate(`/lessons/${lesson.id}`)}
+      {/* ⭐ Loading under hero */}
+      {loading && (
+        <div className="loading-screen">
+          Loading lessons… Please wait 2 minutes or create a lesson.
+        </div>
+      )}
+
+      {/* ⭐ Empty state */}
+      {!loading && lessons.length === 0 && (
+        <div className="empty-message">
+          <p>Chưa có bài học nào please wait for the database to be loaded.</p>
+          <button
+            className="create-btn"
+            onClick={() => navigate("/create-lesson")}
           >
-            <img
-              src={lesson.imageUrl || "/placeholder.png"}
-              alt={lesson.title}
-              className="lesson-image"
-            />
+            ➕ Tạo bài học đầu tiên
+          </button>
+        </div>
+      )}
 
-            <div className="lesson-info">
-              <h3>{lesson.title}</h3>
-              <p className="lesson-desc">{lesson.description}</p>
+      {/* ⭐ Lessons Grid */}
+      {!loading && lessons.length > 0 && (
+        <div className="lessons-grid">
+          {filteredLessons.map((lesson) => (
+            <div
+              key={lesson.id}
+              className="lesson-card"
+              onClick={() => navigate(`/lessons/${lesson.id}`)}
+            >
+              <img
+                src={lesson.imageUrl || "/placeholder.png"}
+                alt={lesson.title}
+                className="lesson-image"
+              />
 
-              <p className="lesson-meta">
-                {lesson.category} • {lesson.level}
-              </p>
+              <div className="lesson-info">
+                <h3>{lesson.title}</h3>
+                <p className="lesson-desc">{lesson.description}</p>
+
+                <p className="lesson-meta">
+                  {lesson.category} • {lesson.level}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
     </div>
   );
