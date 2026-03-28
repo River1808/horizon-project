@@ -1,93 +1,57 @@
 package com.herizon.backend.controller;
 
-import com.herizon.backend.dto.CreateStationDTO;
+import com.herizon.backend.dto.StationDTO;
 import com.herizon.backend.dto.VolunteerRequestDTO;
-import com.herizon.backend.model.Station;
-import com.herizon.backend.repository.StationRepository;
-
+import com.herizon.backend.service.StationService;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/api/stations")
-@CrossOrigin(origins = "*")
 public class StationController {
 
-    private final StationRepository stationRepository;
+    private final StationService service;
 
-    public StationController(StationRepository stationRepository) {
-        this.stationRepository = stationRepository;
+    public StationController(StationService service) {
+        this.service = service;
     }
 
-    // --------------------------
-    // GET ALL STATIONS
-    // --------------------------
+    // GET all stations
     @GetMapping
-    public List<Station> getAll() {
-        return stationRepository.findAll();
+    public List<StationDTO> getAll() {
+        return service.getAll();
     }
 
-    // --------------------------
-    // CREATE NEW STATION
-    // --------------------------
+    // CREATE
     @PostMapping
-    public Station createStation(@RequestBody CreateStationDTO dto) {
-        Station station = new Station(
-                dto.getName(),
-                dto.getAddress(),
-                dto.getActivities(),
-                dto.getManager(),
-                dto.getVolunteersNeeded(),
-                dto.getLocation()
-        );
-
-        return stationRepository.save(station);
+    public StationDTO create(@RequestBody StationDTO dto) {
+        return service.create(dto);
     }
 
-    // --------------------------
-    // UPDATE STATION
-    // --------------------------
+    // UPDATE
     @PutMapping("/{id}")
-    public Station updateStation(@PathVariable String id, @RequestBody CreateStationDTO dto) {
-        Station station = stationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Station not found"));
-
-        station.setName(dto.getName());
-        station.setAddress(dto.getAddress());
-        station.setActivities(dto.getActivities());
-        station.setManager(dto.getManager());
-        station.setVolunteersNeeded(dto.getVolunteersNeeded());
-        station.setLocation(dto.getLocation());
-
-        return stationRepository.save(station);
+    public StationDTO update(@PathVariable String id, @RequestBody StationDTO dto) {
+        return service.update(id, dto);
     }
 
-    // --------------------------
-    // DELETE STATION
-    // --------------------------
+    // DELETE
     @DeleteMapping("/{id}")
-    public String deleteStation(@PathVariable String id) {
-        if (!stationRepository.existsById(id)) {
-            return "Station not found";
-        }
-        stationRepository.deleteById(id);
-        return "Deleted";
+    public void delete(@PathVariable String id) {
+        service.delete(id);
     }
 
-    // --------------------------
-    // VOLUNTEER REQUEST
-    // --------------------------
+    // VOLUNTEER REQUEST (no DB save required)
     @PostMapping("/{id}/volunteer-request")
-    public String volunteerRequest(
+    public String submitVolunteerRequest(
             @PathVariable String id,
-            @RequestBody VolunteerRequestDTO dto) {
-
-        System.out.println("\n---- Volunteer Request ----");
-        System.out.println("Station: " + id);
-        System.out.println("User: " + dto.getUserName());
-        System.out.println("Message: " + dto.getMessage());
-        System.out.println("---------------------------\n");
-
+            @RequestBody VolunteerRequestDTO req
+    ) {
+        // For MVP: simply log it
+        System.out.println("Volunteer request for station " + id);
+        System.out.println("Name: " + req.getUserName());
+        System.out.println("Message: " + req.getMessage());
         return "OK";
     }
 }

@@ -33,6 +33,7 @@ const MapPage = () => {
     activity: "",
     manager: "",
     volunteersNeeded: "",
+    googleFormLink: "", // ⭐ NEW FIELD
   });
 
   const { searchTerm } = useSearch();
@@ -64,6 +65,7 @@ const MapPage = () => {
       activities: [form.activity],
       manager: form.manager,
       volunteersNeeded: Number(form.volunteersNeeded),
+      googleFormLink: form.googleFormLink || null, // ⭐ OPTIONAL
       location: {
         lat: tempMarker.lat,
         lng: tempMarker.lng,
@@ -78,6 +80,7 @@ const MapPage = () => {
       activity: "",
       manager: "",
       volunteersNeeded: "",
+      googleFormLink: "",
     });
 
     setTempMarker(null);
@@ -93,7 +96,6 @@ const MapPage = () => {
         message: "Interested in volunteering",
       }
     );
-
     alert("Volunteer request submitted!");
   };
 
@@ -117,8 +119,7 @@ const MapPage = () => {
 
   return (
     <div>
-
-      {/* ⭐ HERO SECTION */}
+      {/* HERO SECTION */}
       <section className="map-hero">
         <div className="map-hero-text">
           <h1>STEAM Stations Map</h1>
@@ -141,15 +142,25 @@ const MapPage = () => {
             <MapClick />
 
             {filteredStations.map((s) => (
-              <Marker
-                key={s.id}
-                position={[s.location.lat, s.location.lng]}
-              >
+              <Marker key={s.id} position={[s.location.lat, s.location.lng]}>
                 <Popup>
                   <h3>{s.name}</h3>
                   <p>📍 {s.address}</p>
                   <p>🎯 {s.activities.join(", ")}</p>
                   <p>👤 Manager: {s.manager}</p>
+
+                  {s.googleFormLink && (
+                    <p>
+                      📝{" "}
+                      <a
+                        href={s.googleFormLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Registration Form
+                      </a>
+                    </p>
+                  )}
 
                   <button
                     className="volunteer-btn"
@@ -158,7 +169,6 @@ const MapPage = () => {
                     Volunteer
                   </button>
 
-                  {/* ⭐ EDIT BUTTON */}
                   <button
                     className="edit-btn"
                     onClick={() =>
@@ -168,23 +178,21 @@ const MapPage = () => {
                     Edit
                   </button>
 
-                  {/* ⭐ DELETE BUTTON */}
                   <button
                     className="delete-btn"
                     onClick={() => handleDelete(s.id)}
                   >
                     Delete
                   </button>
-
                 </Popup>
               </Marker>
             ))}
 
-            {tempMarker && <Marker position={tempMarker}></Marker>}
+            {tempMarker && <Marker position={tempMarker} />}
           </MapContainer>
         </div>
 
-        {/* RIGHT PANEL */}
+        {/* CREATE PANEL */}
         <div className={`side-panel ${showPanel ? "open" : ""}`}>
           <button
             className="close-btn"
@@ -195,6 +203,7 @@ const MapPage = () => {
           >
             ✕
           </button>
+
           <h2>Create Station</h2>
 
           <label>Station Name</label>
@@ -227,6 +236,16 @@ const MapPage = () => {
             value={form.volunteersNeeded}
             onChange={(e) =>
               setForm({ ...form, volunteersNeeded: e.target.value })
+            }
+          />
+
+          {/* ⭐ NEW FIELD */}
+          <label>Google Form Link (Optional)</label>
+          <input
+            placeholder="https://forms.gle/..."
+            value={form.googleFormLink}
+            onChange={(e) =>
+              setForm({ ...form, googleFormLink: e.target.value })
             }
           />
 
