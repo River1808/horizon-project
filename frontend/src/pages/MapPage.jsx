@@ -23,7 +23,7 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Correct red marker icon
+// Red marker for newly added stations
 const newMarkerIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
@@ -84,10 +84,8 @@ const MapPage = () => {
       manager: form.manager,
       volunteersNeeded: Number(form.volunteersNeeded),
       googleFormLink: form.googleFormLink || null,
-      location: {
-        lat: tempMarker.lat,
-        lng: tempMarker.lng,
-      },
+      lat: tempMarker.lat,
+      lng: tempMarker.lng,
     };
 
     try {
@@ -136,7 +134,7 @@ const MapPage = () => {
   };
 
   const filteredStations = stations.filter((s) => {
-    if (!s.location) return false;
+    if (s.lat === undefined || s.lng === undefined) return false;
     return (
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.activities.some((a) =>
@@ -166,7 +164,7 @@ const MapPage = () => {
             {filteredStations.map((s) => (
               <Marker
                 key={s.id}
-                position={[s.location.lat, s.location.lng]}
+                position={[s.lat, s.lng]} // FIX: use lat/lng instead of location
                 icon={newMarkerIds.includes(s.id) ? newMarkerIcon : undefined}
               >
                 <Popup>
