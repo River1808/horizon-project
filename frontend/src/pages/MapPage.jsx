@@ -77,8 +77,11 @@ const MapPage = () => {
   const MapClick = () => {
     useMapEvents({
       click(e) {
-        setTempMarker(e.latlng);
-        setShowPanel(true);
+        // Only allow clicking when map is ready (not loading/error)
+        if (!loading && !error) {
+          setTempMarker(e.latlng);
+          setShowPanel(true);
+        }
       },
     });
     return null;
@@ -86,7 +89,7 @@ const MapPage = () => {
 
   // Submit new station
   const handleSubmit = async () => {
-    if (!tempMarker) return;
+    if (!tempMarker || error) return;
 
     // ✅ Nest lat/lng inside `location` for backend
     const payload = {
@@ -226,9 +229,9 @@ const MapPage = () => {
             </div>
           )}
 
-          {/* Force MapContainer remount when stations change */}
+          {/* MapContainer - only remount when stations data changes */}
           <MapContainer
-            key={loading ? 'loading' : JSON.stringify(stations.map((s) => s._id || s.id))}
+            key={JSON.stringify(stations.map((s) => s._id || s.id))}
             center={[10.776, 106.7]}
             zoom={13}
             className="map"
@@ -281,8 +284,8 @@ const MapPage = () => {
               );
             })}
 
-            {/* Temporary marker */}
-            {tempMarker && <Marker position={tempMarker} />}
+            {/* Temporary marker - only show when map is ready */}
+            {!loading && !error && tempMarker && <Marker position={tempMarker} />}
           </MapContainer>
         </div>
 
