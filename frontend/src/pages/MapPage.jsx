@@ -40,8 +40,7 @@ const MapPage = () => {
   const [stations, setStations] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
   const [showPanel, setShowPanel] = useState(false);
-  const [newMarkerIds, setNewMarkerIds] = useState([]); // track newly added markers
-
+  const [newMarkerIds, setNewMarkerIds] = useState([]);
   const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
@@ -80,7 +79,7 @@ const MapPage = () => {
     const payload = {
       name: form.name,
       address: form.address,
-      activities: [form.activity],
+      activities: form.activity ? [form.activity] : [],
       manager: form.manager,
       volunteersNeeded: Number(form.volunteersNeeded),
       googleFormLink: form.googleFormLink || null,
@@ -89,14 +88,12 @@ const MapPage = () => {
     };
 
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/stations`,
-        payload
-      );
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
 
       // Add new station instantly
-      setStations((prev) => [...prev, res.data]);
-      setNewMarkerIds((prev) => [...prev, res.data.id]);
+      const newStation = { ...res.data, location: { lat: tempMarker.lat, lng: tempMarker.lng } };
+      setStations((prev) => [...prev, newStation]);
+      setNewMarkerIds((prev) => [...prev, res.data._id || res.data.id]);
 
       setTempMarker(null);
       setShowPanel(false);
@@ -109,9 +106,8 @@ const MapPage = () => {
         googleFormLink: "",
       });
 
-      // Optional: remove red highlight after 5s
       setTimeout(() => {
-        setNewMarkerIds((prev) => prev.filter((id) => id !== res.data.id));
+        setNewMarkerIds((prev) => prev.filter((id) => id !== (res.data._id || res.data.id)));
       }, 5000);
     } catch (err) {
       console.error("Submit error:", err);
@@ -121,26 +117,39 @@ const MapPage = () => {
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this station?")) return;
-    await axios.delete(`${import.meta.env.VITE_API_URL}/api/stations/${id}`);
-    loadStations();
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/stations/${id}`);
+      loadStations();
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete station.");
+    }
   };
 
   const handleVolunteer = async (id) => {
-    await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/stations/${id}/volunteer-request`,
-      { userName: "Guest", message: "Interested in volunteering" }
-    );
-    alert("Volunteer request submitted!");
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/stations/${id}/volunteer-request`, {
+        userName: "Guest",
+        message: "Interested in volunteering",
+      });
+      alert("Volunteer request submitted!");
+    } catch (err) {
+      console.error("Volunteer error:", err);
+      alert("Failed to submit volunteer request.");
+    }
   };
 
   const filteredStations = stations.filter((s) => {
-    if (s.lat === undefined || s.lng === undefined) return false;
-    return (
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.activities.some((a) =>
-        a.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    const lat = s.location?.lat;
+    const lng = s.location?.lng;
+    if (lat === undefined || lng === undefined) return false;
+
+    const nameMatch = s.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const activityMatch = (s.activities || []).some((a) =>
+      a.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    return nameMatch || activityMatch;
   });
 
   return (
@@ -166,7 +175,7 @@ const MapPage = () => {
               const lng = s.location?.lng;
               const id = s._id || s.id;
 
-              if (lat === undefined || lng === undefined) return null;
+              if (!lat || !lng) return null;
 
               return (
                 <Marker
@@ -190,7 +199,7 @@ const MapPage = () => {
                     <button className="volunteer-btn" onClick={() => handleVolunteer(id)}>
                       Volunteer
                     </button>
-                    <button className="edit-btn" onClick={() => navigate(`/edit-station/${id}`)}>
+                    <button className="edit-btn" onClick={() => (window.location.href = `/edit-station/${id}`)}>
                       Edit
                     </button>
                     <button className="delete-btn" onClick={() => handleDelete(id)}>
@@ -219,44 +228,28 @@ const MapPage = () => {
           <h2>Create Station</h2>
 
           <label>Name</label>
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
 
           <label>Address</label>
-          <input
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-          />
+          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
 
           <label>Activity</label>
-          <textarea
-            value={form.activity}
-            onChange={(e) => setForm({ ...form, activity: e.target.value })}
-          />
+          <textarea value={form.activity} onChange={(e) => setForm({ ...form, activity: e.target.value })} />
 
           <label>Manager</label>
-          <input
-            value={form.manager}
-            onChange={(e) => setForm({ ...form, manager: e.target.value })}
-          />
+          <input value={form.manager} onChange={(e) => setForm({ ...form, manager: e.target.value })} />
 
           <label>Volunteers Needed</label>
           <input
             type="number"
             value={form.volunteersNeeded}
-            onChange={(e) =>
-              setForm({ ...form, volunteersNeeded: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, volunteersNeeded: e.target.value })}
           />
 
           <label>Google Form (optional)</label>
           <input
             value={form.googleFormLink}
-            onChange={(e) =>
-              setForm({ ...form, googleFormLink: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, googleFormLink: e.target.value })}
             placeholder="https://forms.gle/123..."
           />
 
