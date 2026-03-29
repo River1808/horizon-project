@@ -12,28 +12,26 @@ import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
 import L from "leaflet";
 
-// Merge Leaflet default icons once (do not delete _getIconUrl)
+// Fix Leaflet default markers in React
+import L from "leaflet";
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 // Red marker for newly added stations
-const newMarkerIcon = new L.Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  iconRetinaUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+const newMarkerIcon = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  iconRetinaUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
+
+console.log("newMarkerIcon created:", newMarkerIcon);
 
 const MapPage = () => {
   const [stations, setStations] = useState([]);
@@ -42,6 +40,7 @@ const MapPage = () => {
   const [newMarkerIds, setNewMarkerIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
   const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
@@ -71,14 +70,17 @@ const MapPage = () => {
 
   useEffect(() => {
     loadStations();
+    // Ensure map is ready after component mounts
+    const timer = setTimeout(() => setMapReady(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Handle map click to place temporary marker
   const MapClick = () => {
     useMapEvents({
       click(e) {
-        // Only allow clicking when map is ready (not loading/error)
-        if (!loading && !error) {
+        // Only allow clicking when map is ready and not loading/error
+        if (mapReady && !loading && !error) {
           setTempMarker(e.latlng);
           setShowPanel(true);
         }
@@ -89,7 +91,7 @@ const MapPage = () => {
 
   // Submit new station
   const handleSubmit = async () => {
-    if (!tempMarker || error) return;
+    if (!tempMarker || error || !mapReady) return;
 
     // ✅ Nest lat/lng inside `location` for backend
     const payload = {
@@ -107,11 +109,20 @@ const MapPage = () => {
 
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
+      console.log("Station creation response:", res.data);
 
-      // Add new station instantly
-      const newStation = { ...res.data, location: { lat: tempMarker.lat, lng: tempMarker.lng } };
-      setStations((prev) => [...prev, newStation]);
-      setNewMarkerIds((prev) => [...prev, res.data._id || res.data.id]);
+      // Add new station instantly - use the response data directly (it should have correct location)
+      const newStation = res.data;
+      const stationId = newStation._id || newStation.id;
+      console.log("Station ID:", stationId);
+
+      if (stationId) {
+        setStations((prev) => [...prev, newStation]);
+        setNewMarkerIds((prev) => [...prev, stationId]);
+      } else {
+        // If no ID, reload stations to get the correct data
+        loadStations();
+      }
 
       setTempMarker(null);
       setShowPanel(false);
@@ -126,7 +137,9 @@ const MapPage = () => {
 
       // Remove red highlight after 5 seconds
       setTimeout(() => {
-        setNewMarkerIds((prev) => prev.filter((id) => id !== (res.data._id || res.data.id)));
+        if (stationId) {
+          setNewMarkerIds((prev) => prev.filter((id) => id !== stationId));
+        }
       }, 5000);
     } catch (err) {
       console.error("Submit error:", err);
@@ -229,9 +242,9 @@ const MapPage = () => {
             </div>
           )}
 
-          {/* MapContainer - only remount when stations data changes */}
+          {/* MapContainer - stable key to prevent unnecessary remounting */}
           <MapContainer
-            key={JSON.stringify(stations.map((s) => s._id || s.id))}
+            key="main-map"
             center={[10.776, 106.7]}
             zoom={13}
             className="map"
@@ -239,11 +252,14 @@ const MapPage = () => {
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapClick />
 
-            {/* Render markers only when loaded and no error */}
-            {!loading && !error && filteredStations.map((s) => {
+            {/* Render markers only when map is ready, loaded and no error */}
+            {mapReady && !loading && !error && filteredStations.map((s) => {
               const lat = s.location?.lat;
               const lng = s.location?.lng;
               const id = s._id || s.id;
+              const isNew = newMarkerIds.includes(id);
+
+              console.log("Rendering marker:", { id, lat, lng, isNew, newMarkerIds });
 
               if (!lat || !lng) return null;
 
@@ -251,7 +267,7 @@ const MapPage = () => {
                 <Marker
                   key={id}
                   position={[lat, lng]}
-                  icon={newMarkerIds.includes(id) ? newMarkerIcon : undefined}
+                  icon={isNew && newMarkerIcon ? newMarkerIcon : undefined}
                 >
                   <Popup>
                     <h3>{s.name}</h3>
@@ -285,7 +301,7 @@ const MapPage = () => {
             })}
 
             {/* Temporary marker - only show when map is ready */}
-            {!loading && !error && tempMarker && <Marker position={tempMarker} />}
+            {mapReady && !loading && !error && tempMarker && <Marker position={tempMarker} />}
           </MapContainer>
         </div>
 
