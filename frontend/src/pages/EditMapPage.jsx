@@ -1,7 +1,34 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
+
+// Fix default Leaflet icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+// Optional: red marker icon
+const newMarkerIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  iconRetinaUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
 
 const EditMapPage = () => {
   const { id } = useParams();
@@ -13,7 +40,10 @@ const EditMapPage = () => {
     activities: "",
     manager: "",
     volunteersNeeded: "",
+    googleFormLink: "",
   });
+
+  const [markerPosition, setMarkerPosition] = useState(null);
 
   // Load station details
   useEffect(() => {
@@ -27,33 +57,81 @@ const EditMapPage = () => {
           activities: st.activities.join(", "),
           manager: st.manager,
           volunteersNeeded: st.volunteersNeeded,
+          googleFormLink: st.googleFormLink || "",
         });
-      });
+
+        if (st.location) {
+          setMarkerPosition({ lat: st.location.lat, lng: st.location.lng });
+        }
+      })
+      .catch(console.error);
   }, [id]);
 
   const handleSubmit = async () => {
+    if (!markerPosition) {
+      alert("Please select a location on the map!");
+      return;
+    }
+
     const payload = {
       name: form.name,
       address: form.address,
       activities: form.activities.split(",").map((a) => a.trim()),
       manager: form.manager,
       volunteersNeeded: Number(form.volunteersNeeded),
+      googleFormLink: form.googleFormLink || null,
+      location: {
+        lat: markerPosition.lat,
+        lng: markerPosition.lng,
+      },
     };
 
-    await axios.put(
-      `${import.meta.env.VITE_API_URL}/api/stations/${id}`,
-      payload
-    );
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/stations/${id}`, payload);
+      navigate("/map");
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Failed to update station.");
+    }
+  };
 
-    navigate("/map"); // go back after save
+  const MapClick = () => {
+    useMapEvents({
+      click(e) {
+        setMarkerPosition(e.latlng);
+      },
+    });
+    return null;
   };
 
   return (
     <div className="edit-page">
       <h1>Edit Station</h1>
 
-      <div className="edit-form">
+      <div className="map-wrapper" style={{ height: "400px", marginBottom: "20px" }}>
+        <MapContainer
+          center={markerPosition || [10.776, 106.7]}
+          zoom={13}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapClick />
+          {markerPosition && (
+            <Marker
+              position={markerPosition}
+              icon={newMarkerIcon}
+              draggable={true}
+              eventHandlers={{
+                dragend: (e) => {
+                  setMarkerPosition(e.target.getLatLng());
+                },
+              }}
+            />
+          )}
+        </MapContainer>
+      </div>
 
+      <div className="edit-form">
         <label>Station Name</label>
         <input
           value={form.name}
@@ -87,14 +165,21 @@ const EditMapPage = () => {
           }
         />
 
+        <label>Google Form (optional)</label>
+        <input
+          value={form.googleFormLink}
+          onChange={(e) =>
+            setForm({ ...form, googleFormLink: e.target.value })
+          }
+          placeholder="https://forms.gle/123..."
+        />
+
         <button className="submit-btn" onClick={handleSubmit}>
           Save Changes
         </button>
-
         <button className="cancel-btn" onClick={() => navigate("/map")}>
           Cancel
         </button>
-
       </div>
     </div>
   );

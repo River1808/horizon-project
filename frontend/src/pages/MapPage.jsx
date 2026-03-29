@@ -161,52 +161,45 @@ const MapPage = () => {
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapClick />
 
-            {filteredStations.map((s) => (
-              <Marker
-                key={s.id}
-                position={[s.lat, s.lng]} // FIX: use lat/lng instead of location
-                icon={newMarkerIds.includes(s.id) ? newMarkerIcon : undefined}
-              >
-                <Popup>
-                  <h3>{s.name}</h3>
-                  <p>📍 {s.address}</p>
-                  <p>🎯 {s.activities.join(", ")}</p>
-                  <p>👤 {s.manager}</p>
-                  {s.googleFormLink && (
-                    <p>
-                      📝{" "}
-                      <a
-                        href={s.googleFormLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Registration Form
-                      </a>
-                    </p>
-                  )}
-                  <button
-                    className="volunteer-btn"
-                    onClick={() => handleVolunteer(s.id)}
-                  >
-                    Volunteer
-                  </button>
-                  <button
-                    className="edit-btn"
-                    onClick={() =>
-                      (window.location.href = `/edit-station/${s.id}`)
-                    }
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(s.id)}
-                  >
-                    Delete
-                  </button>
-                </Popup>
-              </Marker>
-            ))}
+            {filteredStations.map((s) => {
+              const lat = s.location?.lat;
+              const lng = s.location?.lng;
+              const id = s._id || s.id;
+
+              if (lat === undefined || lng === undefined) return null;
+
+              return (
+                <Marker
+                  key={id}
+                  position={[lat, lng]}
+                  icon={newMarkerIds.includes(id) ? newMarkerIcon : undefined}
+                >
+                  <Popup>
+                    <h3>{s.name}</h3>
+                    <p>📍 {s.address}</p>
+                    <p>🎯 {(s.activities || []).join(", ")}</p>
+                    <p>👤 {s.manager}</p>
+                    {s.googleFormLink && (
+                      <p>
+                        📝{" "}
+                        <a href={s.googleFormLink} target="_blank" rel="noopener noreferrer">
+                          Registration Form
+                        </a>
+                      </p>
+                    )}
+                    <button className="volunteer-btn" onClick={() => handleVolunteer(id)}>
+                      Volunteer
+                    </button>
+                    <button className="edit-btn" onClick={() => navigate(`/edit-station/${id}`)}>
+                      Edit
+                    </button>
+                    <button className="delete-btn" onClick={() => handleDelete(id)}>
+                      Delete
+                    </button>
+                  </Popup>
+                </Marker>
+              );
+            })}
 
             {tempMarker && <Marker position={tempMarker} />}
           </MapContainer>
