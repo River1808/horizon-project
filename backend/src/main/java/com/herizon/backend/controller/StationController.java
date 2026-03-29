@@ -17,7 +17,10 @@ public class StationController {
     public StationController(StationService service) {
         this.service = service;
     }
-
+    @GetMapping("/{id}")
+    public StationDTO getById(@PathVariable String id) {
+        return service.getById(id);
+    }
     @GetMapping
     public List<StationDTO> getAll() {
         return service.getAll();

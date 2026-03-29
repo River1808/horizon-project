@@ -29,7 +29,10 @@ public class StationService {
     public void delete(String id) {
         repo.deleteById(id);
     }
-
+    public StationDTO getById(String id) {
+        Station station = repo.findById(id).orElseThrow(() -> new RuntimeException("Station not found"));
+        return toDTO(station);
+    }
     public StationDTO update(String id, StationDTO dto) {
         Station station = repo.findById(id).orElseThrow();
 
