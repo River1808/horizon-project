@@ -40,6 +40,8 @@ const MapPage = () => {
   const [tempMarker, setTempMarker] = useState(null);
   const [showPanel, setShowPanel] = useState(false);
   const [newMarkerIds, setNewMarkerIds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
@@ -54,10 +56,16 @@ const MapPage = () => {
   // Load stations from API
   const loadStations = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/stations`);
       setStations(res.data);
     } catch (err) {
       console.error("Load error:", err);
+      setError("Failed to load stations. Please check your connection.");
+      setStations([]); // Ensure stations is empty on error
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,6 +128,8 @@ const MapPage = () => {
     } catch (err) {
       console.error("Submit error:", err);
       alert("Failed to create station. Please try again.");
+      // Reload stations in case of error to ensure consistency
+      loadStations();
     }
   };
 
@@ -128,10 +138,13 @@ const MapPage = () => {
     if (!confirm("Delete this station?")) return;
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/stations/${id}`);
-      loadStations();
+      // Remove from local state immediately
+      setStations((prev) => prev.filter((s) => (s._id || s.id) !== id));
     } catch (err) {
       console.error("Delete error:", err);
       alert("Failed to delete station.");
+      // Reload stations in case of error to ensure consistency
+      loadStations();
     }
   };
 
@@ -177,9 +190,45 @@ const MapPage = () => {
 
       <div className="map-container">
         <div className="map-wrapper">
+          {error && (
+            <div className="error-message" style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              background: 'red',
+              color: 'white',
+              padding: '10px',
+              borderRadius: '5px',
+              zIndex: 1000
+            }}>
+              {error}
+              <button
+                onClick={loadStations}
+                style={{ marginLeft: '10px', background: 'white', color: 'red', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer' }}
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {loading && (
+            <div className="loading-message" style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: 'blue',
+              color: 'white',
+              padding: '10px',
+              borderRadius: '5px',
+              zIndex: 1000
+            }}>
+              Loading stations...
+            </div>
+          )}
+
           {/* Force MapContainer remount when stations change */}
           <MapContainer
-            key={JSON.stringify(stations.map((s) => s._id))}
+            key={loading ? 'loading' : JSON.stringify(stations.map((s) => s._id || s.id))}
             center={[10.776, 106.7]}
             zoom={13}
             className="map"
@@ -187,8 +236,8 @@ const MapPage = () => {
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapClick />
 
-            {/* Render markers */}
-            {filteredStations.map((s) => {
+            {/* Render markers only when loaded and no error */}
+            {!loading && !error && filteredStations.map((s) => {
               const lat = s.location?.lat;
               const lng = s.location?.lng;
               const id = s._id || s.id;
