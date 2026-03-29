@@ -12,8 +12,7 @@ import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
 import L from "leaflet";
 
-// Fix default leaflet icons
-delete L.Icon.Default.prototype._getIconUrl;
+// Merge Leaflet default icons once (do not delete _getIconUrl)
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -52,6 +51,7 @@ const MapPage = () => {
     googleFormLink: "",
   });
 
+  // Load stations from API
   const loadStations = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/stations`);
@@ -61,8 +61,11 @@ const MapPage = () => {
     }
   };
 
-  useEffect(loadStations, []);
+  useEffect(() => {
+    loadStations();
+  }, []);
 
+  // Handle map click to place temporary marker
   const MapClick = () => {
     useMapEvents({
       click(e) {
@@ -73,6 +76,7 @@ const MapPage = () => {
     return null;
   };
 
+  // Submit new station
   const handleSubmit = async () => {
     if (!tempMarker) return;
 
@@ -106,6 +110,7 @@ const MapPage = () => {
         googleFormLink: "",
       });
 
+      // Remove red highlight after 5 seconds
       setTimeout(() => {
         setNewMarkerIds((prev) => prev.filter((id) => id !== (res.data._id || res.data.id)));
       }, 5000);
@@ -115,6 +120,7 @@ const MapPage = () => {
     }
   };
 
+  // Delete station
   const handleDelete = async (id) => {
     if (!confirm("Delete this station?")) return;
     try {
@@ -126,6 +132,7 @@ const MapPage = () => {
     }
   };
 
+  // Volunteer request
   const handleVolunteer = async (id) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/stations/${id}/volunteer-request`, {
@@ -139,6 +146,7 @@ const MapPage = () => {
     }
   };
 
+  // Filter stations by search term and valid location
   const filteredStations = stations.filter((s) => {
     const lat = s.location?.lat;
     const lng = s.location?.lng;
@@ -166,10 +174,17 @@ const MapPage = () => {
 
       <div className="map-container">
         <div className="map-wrapper">
-          <MapContainer center={[10.776, 106.7]} zoom={13} className="map">
+          {/* Force MapContainer remount when stations change */}
+          <MapContainer
+            key={JSON.stringify(stations.map((s) => s._id))}
+            center={[10.776, 106.7]}
+            zoom={13}
+            className="map"
+          >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapClick />
 
+            {/* Render markers */}
             {filteredStations.map((s) => {
               const lat = s.location?.lat;
               const lng = s.location?.lng;
@@ -191,7 +206,11 @@ const MapPage = () => {
                     {s.googleFormLink && (
                       <p>
                         📝{" "}
-                        <a href={s.googleFormLink} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={s.googleFormLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           Registration Form
                         </a>
                       </p>
@@ -210,10 +229,12 @@ const MapPage = () => {
               );
             })}
 
+            {/* Temporary marker */}
             {tempMarker && <Marker position={tempMarker} />}
           </MapContainer>
         </div>
 
+        {/* Side panel for adding station */}
         <div className={`side-panel ${showPanel ? "open" : ""}`}>
           <button
             className="close-btn"
@@ -228,16 +249,28 @@ const MapPage = () => {
           <h2>Create Station</h2>
 
           <label>Name</label>
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
 
           <label>Address</label>
-          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <input
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+          />
 
           <label>Activity</label>
-          <textarea value={form.activity} onChange={(e) => setForm({ ...form, activity: e.target.value })} />
+          <textarea
+            value={form.activity}
+            onChange={(e) => setForm({ ...form, activity: e.target.value })}
+          />
 
           <label>Manager</label>
-          <input value={form.manager} onChange={(e) => setForm({ ...form, manager: e.target.value })} />
+          <input
+            value={form.manager}
+            onChange={(e) => setForm({ ...form, manager: e.target.value })}
+          />
 
           <label>Volunteers Needed</label>
           <input
