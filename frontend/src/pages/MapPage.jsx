@@ -23,22 +23,26 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Custom icon for newly added marker
+// Correct red marker icon
 const newMarkerIcon = new L.Icon({
   iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-red.png",
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
   iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
   shadowUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
 });
 
 const MapPage = () => {
   const [stations, setStations] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
   const [showPanel, setShowPanel] = useState(false);
+  const [newMarkerIds, setNewMarkerIds] = useState([]); // track newly added markers
+
+  const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
     name: "",
@@ -49,17 +53,10 @@ const MapPage = () => {
     googleFormLink: "",
   });
 
-  const { searchTerm } = useSearch();
-
-  // Load stations from backend
   const loadStations = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/stations`);
-      const formatted = res.data.map((s) => ({
-        ...s,
-        location: s.location ? s.location : { lat: s.lat, lng: s.lng },
-      }));
-      setStations(formatted);
+      setStations(res.data);
     } catch (err) {
       console.error("Load error:", err);
     }
@@ -67,7 +64,6 @@ const MapPage = () => {
 
   useEffect(loadStations, []);
 
-  // Handle map click for temporary marker
   const MapClick = () => {
     useMapEvents({
       click(e) {
@@ -78,7 +74,6 @@ const MapPage = () => {
     return null;
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
     if (!tempMarker) return;
 
@@ -89,22 +84,22 @@ const MapPage = () => {
       manager: form.manager,
       volunteersNeeded: Number(form.volunteersNeeded),
       googleFormLink: form.googleFormLink || null,
-      lat: tempMarker.lat,
-      lng: tempMarker.lng,
+      location: {
+        lat: tempMarker.lat,
+        lng: tempMarker.lng,
+      },
     };
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/stations`,
+        payload
+      );
 
-      // Add new station instantly with red marker
-      const newStation = {
-        ...res.data,
-        location: { lat: payload.lat, lng: payload.lng },
-        isNew: true,
-      };
-      setStations((prev) => [...prev, newStation]);
+      // Add new station instantly
+      setStations((prev) => [...prev, res.data]);
+      setNewMarkerIds((prev) => [...prev, res.data.id]);
 
-      // Reset form and close panel
       setTempMarker(null);
       setShowPanel(false);
       setForm({
@@ -115,6 +110,11 @@ const MapPage = () => {
         volunteersNeeded: "",
         googleFormLink: "",
       });
+
+      // Optional: remove red highlight after 5s
+      setTimeout(() => {
+        setNewMarkerIds((prev) => prev.filter((id) => id !== res.data.id));
+      }, 5000);
     } catch (err) {
       console.error("Submit error:", err);
       alert("Failed to create station. Please try again.");
@@ -123,7 +123,6 @@ const MapPage = () => {
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this station?")) return;
-
     await axios.delete(`${import.meta.env.VITE_API_URL}/api/stations/${id}`);
     loadStations();
   };
@@ -136,7 +135,6 @@ const MapPage = () => {
     alert("Volunteer request submitted!");
   };
 
-  // Filter stations by search term
   const filteredStations = stations.filter((s) => {
     if (!s.location) return false;
     return (
@@ -154,7 +152,6 @@ const MapPage = () => {
           <h1>STEAM Stations Map</h1>
           <p>Click anywhere on the map to create a new station.</p>
         </div>
-
         <div className="map-hero-img">
           <img src="/map-hero.jpg" alt="Map Hero" />
         </div>
@@ -170,14 +167,13 @@ const MapPage = () => {
               <Marker
                 key={s.id}
                 position={[s.location.lat, s.location.lng]}
-                icon={s.isNew ? newMarkerIcon : undefined}
+                icon={newMarkerIds.includes(s.id) ? newMarkerIcon : undefined}
               >
                 <Popup>
                   <h3>{s.name}</h3>
                   <p>📍 {s.address}</p>
                   <p>🎯 {s.activities.join(", ")}</p>
                   <p>👤 {s.manager}</p>
-
                   {s.googleFormLink && (
                     <p>
                       📝{" "}
@@ -190,14 +186,12 @@ const MapPage = () => {
                       </a>
                     </p>
                   )}
-
                   <button
                     className="volunteer-btn"
                     onClick={() => handleVolunteer(s.id)}
                   >
                     Volunteer
                   </button>
-
                   <button
                     className="edit-btn"
                     onClick={() =>
@@ -206,7 +200,6 @@ const MapPage = () => {
                   >
                     Edit
                   </button>
-
                   <button
                     className="delete-btn"
                     onClick={() => handleDelete(s.id)}
