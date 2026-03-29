@@ -12,17 +12,18 @@ import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
 import L from "leaflet";
 
-// Fix Leaflet default markers in React
-import L from "leaflet";
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+// Fix Leaflet default markers in React - moved inside component to avoid build issues
+const fixLeafletIcons = () => {
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  });
+};
 
 // Red marker for newly added stations
-const newMarkerIcon = L.icon({
+const createNewMarkerIcon = () => L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
   iconRetinaUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
@@ -30,8 +31,6 @@ const newMarkerIcon = L.icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
-
-console.log("newMarkerIcon created:", newMarkerIcon);
 
 const MapPage = () => {
   const [stations, setStations] = useState([]);
@@ -41,6 +40,7 @@ const MapPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mapReady, setMapReady] = useState(false);
+  const [newMarkerIcon, setNewMarkerIcon] = useState(null);
   const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
@@ -69,6 +69,10 @@ const MapPage = () => {
   };
 
   useEffect(() => {
+    // Initialize Leaflet icons
+    fixLeafletIcons();
+    setNewMarkerIcon(createNewMarkerIcon());
+
     loadStations();
     // Ensure map is ready after component mounts
     const timer = setTimeout(() => setMapReady(true), 100);
@@ -109,12 +113,10 @@ const MapPage = () => {
 
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
-      console.log("Station creation response:", res.data);
 
       // Add new station instantly - use the response data directly (it should have correct location)
       const newStation = res.data;
       const stationId = newStation._id || newStation.id;
-      console.log("Station ID:", stationId);
 
       if (stationId) {
         setStations((prev) => [...prev, newStation]);
@@ -258,8 +260,6 @@ const MapPage = () => {
               const lng = s.location?.lng;
               const id = s._id || s.id;
               const isNew = newMarkerIds.includes(id);
-
-              console.log("Rendering marker:", { id, lat, lng, isNew, newMarkerIds });
 
               if (!lat || !lng) return null;
 

@@ -6,25 +6,21 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
 
-// Fix default Leaflet icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+// Fix default Leaflet icons - moved inside component to avoid build issues
+const fixLeafletIcons = () => {
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  });
+};
 
 // Optional: red marker icon
-const newMarkerIcon = new L.Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  iconRetinaUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+const createNewMarkerIcon = () => new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  iconRetinaUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -33,6 +29,7 @@ const newMarkerIcon = new L.Icon({
 const EditMapPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [newMarkerIcon, setNewMarkerIcon] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -45,8 +42,12 @@ const EditMapPage = () => {
 
   const [markerPosition, setMarkerPosition] = useState(null);
 
-  // Load station details
+  // Load station details and initialize icons
   useEffect(() => {
+    // Initialize Leaflet icons
+    fixLeafletIcons();
+    setNewMarkerIcon(createNewMarkerIcon());
+
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/stations/${id}`)
       .then((res) => {
