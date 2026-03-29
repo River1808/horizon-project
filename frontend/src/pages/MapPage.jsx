@@ -12,7 +12,7 @@ import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
 import L from "leaflet";
 
-// Merge Leaflet default icons once (do not delete _getIconUrl)
+// Merge Leaflet default icons once
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -40,6 +40,7 @@ const MapPage = () => {
   const [tempMarker, setTempMarker] = useState(null);
   const [showPanel, setShowPanel] = useState(false);
   const [newMarkerIds, setNewMarkerIds] = useState([]);
+  const [mapKey, setMapKey] = useState(Date.now()); // NEW: forces MapContainer remount
   const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
@@ -51,7 +52,6 @@ const MapPage = () => {
     googleFormLink: "",
   });
 
-  // Load stations from API
   const loadStations = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/stations`);
@@ -61,11 +61,12 @@ const MapPage = () => {
     }
   };
 
+  // Reload stations whenever the page is visited
   useEffect(() => {
     loadStations();
+    setMapKey(Date.now()); // force remount of MapContainer
   }, []);
 
-  // Handle map click to place temporary marker
   const MapClick = () => {
     useMapEvents({
       click(e) {
@@ -76,7 +77,6 @@ const MapPage = () => {
     return null;
   };
 
-  // Submit new station
   const handleSubmit = async () => {
     if (!tempMarker) return;
 
@@ -94,7 +94,6 @@ const MapPage = () => {
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
 
-      // Add new station instantly
       const newStation = { ...res.data, location: { lat: tempMarker.lat, lng: tempMarker.lng } };
       setStations((prev) => [...prev, newStation]);
       setNewMarkerIds((prev) => [...prev, res.data._id || res.data.id]);
@@ -110,7 +109,6 @@ const MapPage = () => {
         googleFormLink: "",
       });
 
-      // Remove red highlight after 5 seconds
       setTimeout(() => {
         setNewMarkerIds((prev) => prev.filter((id) => id !== (res.data._id || res.data.id)));
       }, 5000);
@@ -120,7 +118,6 @@ const MapPage = () => {
     }
   };
 
-  // Delete station
   const handleDelete = async (id) => {
     if (!confirm("Delete this station?")) return;
     try {
@@ -132,7 +129,6 @@ const MapPage = () => {
     }
   };
 
-  // Volunteer request
   const handleVolunteer = async (id) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/stations/${id}/volunteer-request`, {
@@ -146,7 +142,6 @@ const MapPage = () => {
     }
   };
 
-  // Filter stations by search term and valid location
   const filteredStations = stations.filter((s) => {
     const lat = s.location?.lat;
     const lng = s.location?.lng;
@@ -174,9 +169,8 @@ const MapPage = () => {
 
       <div className="map-container">
         <div className="map-wrapper">
-          {/* Force MapContainer remount when stations change */}
           <MapContainer
-            key={JSON.stringify(stations.map((s) => s._id))}
+            key={mapKey} // force remount on page revisit
             center={[10.776, 106.7]}
             zoom={13}
             className="map"
@@ -184,7 +178,6 @@ const MapPage = () => {
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapClick />
 
-            {/* Render markers */}
             {filteredStations.map((s) => {
               const lat = s.location?.lat;
               const lng = s.location?.lng;
@@ -229,12 +222,10 @@ const MapPage = () => {
               );
             })}
 
-            {/* Temporary marker */}
             {tempMarker && <Marker position={tempMarker} />}
           </MapContainer>
         </div>
 
-        {/* Side panel for adding station */}
         <div className={`side-panel ${showPanel ? "open" : ""}`}>
           <button
             className="close-btn"
@@ -249,54 +240,28 @@ const MapPage = () => {
           <h2>Create Station</h2>
 
           <label>Name</label>
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
 
           <label>Address</label>
-          <input
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-          />
+          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
 
           <label>Activity</label>
-          <textarea
-            value={form.activity}
-            onChange={(e) => setForm({ ...form, activity: e.target.value })}
-          />
+          <textarea value={form.activity} onChange={(e) => setForm({ ...form, activity: e.target.value })} />
 
           <label>Manager</label>
-          <input
-            value={form.manager}
-            onChange={(e) => setForm({ ...form, manager: e.target.value })}
-          />
+          <input value={form.manager} onChange={(e) => setForm({ ...form, manager: e.target.value })} />
 
           <label>Volunteers Needed</label>
-          <input
-            type="number"
-            value={form.volunteersNeeded}
-            onChange={(e) => setForm({ ...form, volunteersNeeded: e.target.value })}
-          />
+          <input type="number" value={form.volunteersNeeded} onChange={(e) => setForm({ ...form, volunteersNeeded: e.target.value })} />
 
           <label>Google Form (optional)</label>
-          <input
-            value={form.googleFormLink}
-            onChange={(e) => setForm({ ...form, googleFormLink: e.target.value })}
-            placeholder="https://forms.gle/123..."
-          />
+          <input value={form.googleFormLink} onChange={(e) => setForm({ ...form, googleFormLink: e.target.value })} placeholder="https://forms.gle/123..." />
 
           <button className="submit-btn" onClick={handleSubmit}>
             Submit
           </button>
 
-          <button
-            className="cancel-btn"
-            onClick={() => {
-              setShowPanel(false);
-              setTempMarker(null);
-            }}
-          >
+          <button className="cancel-btn" onClick={() => { setShowPanel(false); setTempMarker(null); }}>
             Cancel
           </button>
         </div>
