@@ -2,6 +2,7 @@ package com.herizon.backend.controller;
 
 import com.herizon.backend.dto.StationDTO;
 import com.herizon.backend.service.StationService;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,9 +38,8 @@ public class StationController {
         service.delete(id);
     }
 
-    // Volunteer request (mock version)
     @PostMapping("/{id}/volunteer-request")
-    public String volunteerReq(@PathVariable String id, @RequestBody Object body) {
-        return "Volunteer request submitted!";
+    public void volunteer(@PathVariable String id, @RequestBody Object body) {
+        System.out.println("Volunteer request for station " + id);
     }
 }

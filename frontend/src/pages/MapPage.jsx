@@ -10,8 +10,8 @@ import axios from "axios";
 import { useSearch } from "../contexts/SearchContext";
 import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
-
 import L from "leaflet";
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -33,7 +33,7 @@ const MapPage = () => {
     activity: "",
     manager: "",
     volunteersNeeded: "",
-    googleFormLink: "", // ⭐ NEW FIELD
+    googleFormLink: "",
   });
 
   const { searchTerm } = useSearch();
@@ -41,7 +41,8 @@ const MapPage = () => {
   const loadStations = () => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/stations`)
-      .then((res) => setStations(res.data));
+      .then((res) => setStations(res.data))
+      .catch((err) => console.error("Load error:", err));
   };
 
   useEffect(loadStations, []);
@@ -65,68 +66,48 @@ const MapPage = () => {
       activities: [form.activity],
       manager: form.manager,
       volunteersNeeded: Number(form.volunteersNeeded),
-      googleFormLink: form.googleFormLink || null, // ⭐ OPTIONAL
-      location: {
-        lat: tempMarker.lat,
-        lng: tempMarker.lng,
-      },
+      googleFormLink: form.googleFormLink || null,
+      lat: tempMarker.lat,
+      lng: tempMarker.lng,
     };
 
     await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
-
-    setForm({
-      name: "",
-      address: "",
-      activity: "",
-      manager: "",
-      volunteersNeeded: "",
-      googleFormLink: "",
-    });
-
+    loadStations();
     setTempMarker(null);
     setShowPanel(false);
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this station?")) return;
+
+    await axios.delete(`${import.meta.env.VITE_API_URL}/api/stations/${id}`);
     loadStations();
   };
 
-  const handleVolunteer = (stationId) => {
-    axios.post(
-      `${import.meta.env.VITE_API_URL}/api/stations/${stationId}/volunteer-request`,
-      {
-        userName: "Guest",
-        message: "Interested in volunteering",
-      }
+  const handleVolunteer = async (id) => {
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/stations/${id}/volunteer-request`,
+      { userName: "Guest", message: "Interested in volunteering" }
     );
     alert("Volunteer request submitted!");
   };
 
-  const handleDelete = async (stationId) => {
-    if (!confirm("Delete this station?")) return;
-
-    await axios.delete(
-      `${import.meta.env.VITE_API_URL}/api/stations/${stationId}`
-    );
-
-    loadStations();
-  };
-
-  const filteredStations = stations.filter(
-    (s) =>
+  const filteredStations = stations.filter((s) => {
+    if (!s.location) return false;
+    return (
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.activities.some((a) =>
         a.toLowerCase().includes(searchTerm.toLowerCase())
       )
-  );
+    );
+  });
 
   return (
     <div>
-      {/* HERO SECTION */}
       <section className="map-hero">
         <div className="map-hero-text">
           <h1>STEAM Stations Map</h1>
-          <p>
-            Click anywhere on the map to create a new station, add activities,
-            and support volunteers in your community.
-          </p>
+          <p>Click anywhere on the map to create a new station.</p>
         </div>
 
         <div className="map-hero-img">
@@ -134,7 +115,6 @@ const MapPage = () => {
         </div>
       </section>
 
-      {/* MAP + PANEL */}
       <div className="map-container">
         <div className="map-wrapper">
           <MapContainer center={[10.776, 106.7]} zoom={13} className="map">
@@ -142,12 +122,15 @@ const MapPage = () => {
             <MapClick />
 
             {filteredStations.map((s) => (
-              <Marker key={s.id} position={[s.location.lat, s.location.lng]}>
+              <Marker
+                key={s.id}
+                position={[s.location.lat, s.location.lng]}
+              >
                 <Popup>
                   <h3>{s.name}</h3>
                   <p>📍 {s.address}</p>
                   <p>🎯 {s.activities.join(", ")}</p>
-                  <p>👤 Manager: {s.manager}</p>
+                  <p>👤 {s.manager}</p>
 
                   {s.googleFormLink && (
                     <p>
@@ -192,7 +175,6 @@ const MapPage = () => {
           </MapContainer>
         </div>
 
-        {/* CREATE PANEL */}
         <div className={`side-panel ${showPanel ? "open" : ""}`}>
           <button
             className="close-btn"
@@ -206,7 +188,7 @@ const MapPage = () => {
 
           <h2>Create Station</h2>
 
-          <label>Station Name</label>
+          <label>Name</label>
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -224,7 +206,7 @@ const MapPage = () => {
             onChange={(e) => setForm({ ...form, activity: e.target.value })}
           />
 
-          <label>Manager Name</label>
+          <label>Manager</label>
           <input
             value={form.manager}
             onChange={(e) => setForm({ ...form, manager: e.target.value })}
@@ -239,14 +221,13 @@ const MapPage = () => {
             }
           />
 
-          {/* ⭐ NEW FIELD */}
-          <label>Google Form Link (Optional)</label>
+          <label>Google Form (optional)</label>
           <input
-            placeholder="https://forms.gle/..."
             value={form.googleFormLink}
             onChange={(e) =>
               setForm({ ...form, googleFormLink: e.target.value })
             }
+            placeholder="https://forms.gle/123..."
           />
 
           <button className="submit-btn" onClick={handleSubmit}>
