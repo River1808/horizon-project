@@ -12,10 +12,24 @@ public class StationDTO {
     private int volunteersNeeded;
     private String googleFormLink;
 
-    private double lat;
-    private double lng;
+    //  Nested location object to match DB
+    private Location location;
 
     public StationDTO() {}
+
+    // Nested class for location
+    public static class Location {
+        private double lat;
+        private double lng;
+
+        public Location() {}
+
+        public double getLat() { return lat; }
+        public void setLat(double lat) { this.lat = lat; }
+
+        public double getLng() { return lng; }
+        public void setLng(double lng) { this.lng = lng; }
+    }
 
     // GETTERS & SETTERS
     public String getId() { return id; }
@@ -39,9 +53,6 @@ public class StationDTO {
     public String getGoogleFormLink() { return googleFormLink; }
     public void setGoogleFormLink(String googleFormLink) { this.googleFormLink = googleFormLink; }
 
-    public double getLat() { return lat; }
-    public void setLat(double lat) { this.lat = lat; }
-
-    public double getLng() { return lng; }
-    public void setLng(double lng) { this.lng = lng; }
+    public Location getLocation() { return location; }
+    public void setLocation(Location location) { this.location = location; }
 }
