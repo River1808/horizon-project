@@ -42,7 +42,9 @@ public class StationService {
         station.setManager(dto.getManager());
         station.setVolunteersNeeded(dto.getVolunteersNeeded());
         station.setGoogleFormLink(dto.getGoogleFormLink());
-        station.setLocation(new Station.Location(dto.getLat(), dto.getLng()));
+        if (dto.getLocation() != null) {
+            station.setLocation(new Station.Location(dto.getLocation().getLat(), dto.getLocation().getLng()));
+        }
 
         return toDTO(repo.save(station));
     }
@@ -56,8 +58,9 @@ public class StationService {
         dto.setManager(s.getManager());
         dto.setVolunteersNeeded(s.getVolunteersNeeded());
         dto.setGoogleFormLink(s.getGoogleFormLink());
-        dto.setLat(s.getLocation().getLat());
-        dto.setLng(s.getLocation().getLng());
+        if (s.getLocation() != null) {
+            dto.setLocation(new StationDTO.Location(s.getLocation().getLat(), s.getLocation().getLng()));
+        }
         return dto;
     }
 
@@ -69,7 +72,9 @@ public class StationService {
         s.setManager(dto.getManager());
         s.setVolunteersNeeded(dto.getVolunteersNeeded());
         s.setGoogleFormLink(dto.getGoogleFormLink());
-        s.setLocation(new Station.Location(dto.getLat(), dto.getLng()));
+        if (dto.getLocation() != null) {
+            s.setLocation(new Station.Location(dto.getLocation().getLat(), dto.getLocation().getLng()));
+        }
         return s;
     }
 }
