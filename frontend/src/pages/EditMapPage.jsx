@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import L from "leaflet";
+import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
 
@@ -16,11 +16,9 @@ const fixLeafletIcons = () => {
   });
 };
 
-// Optional: red marker icon
-const createNewMarkerIcon = () => new L.Icon({
+// Red marker icon for editing
+const editMarkerIcon = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  iconRetinaUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -29,7 +27,6 @@ const createNewMarkerIcon = () => new L.Icon({
 const EditMapPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [newMarkerIcon, setNewMarkerIcon] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -46,7 +43,6 @@ const EditMapPage = () => {
   useEffect(() => {
     // Initialize Leaflet icons
     fixLeafletIcons();
-    setNewMarkerIcon(createNewMarkerIcon());
 
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/stations/${id}`)
@@ -120,7 +116,7 @@ const EditMapPage = () => {
           {markerPosition && (
             <Marker
               position={markerPosition}
-              icon={newMarkerIcon}
+              icon={editMarkerIcon}
               draggable={true}
               eventHandlers={{
                 dragend: (e) => {

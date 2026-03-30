@@ -10,7 +10,7 @@ import axios from "axios";
 import { useSearch } from "../contexts/SearchContext";
 import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
-import L from "leaflet";
+import * as L from "leaflet";
 
 // Fix Leaflet default markers in React - moved inside component to avoid build issues
 const fixLeafletIcons = () => {
@@ -22,6 +22,14 @@ const fixLeafletIcons = () => {
   });
 };
 
+// Red marker for newly added stations - created at module level
+const newMarkerIcon = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
 const MapPage = () => {
   const [stations, setStations] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
@@ -30,7 +38,6 @@ const MapPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mapReady, setMapReady] = useState(false);
-  const newMarkerIconRef = useRef(null);
   const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
@@ -61,14 +68,6 @@ const MapPage = () => {
   useEffect(() => {
     // Initialize Leaflet icons
     fixLeafletIcons();
-    newMarkerIconRef.current = L.icon({
-      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-      iconRetinaUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-      shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-    });
 
     loadStations();
     // Ensure map is ready after component mounts
@@ -268,7 +267,7 @@ const MapPage = () => {
                 <Marker
                   key={id}
                   position={[lat, lng]}
-                  icon={isNew && newMarkerIconRef.current ? newMarkerIconRef.current : undefined}
+                  icon={isNew ? newMarkerIcon : undefined}
                 >
                   <Popup>
                     <h3>{s.name}</h3>
