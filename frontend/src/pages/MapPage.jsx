@@ -12,11 +12,24 @@ import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
 import L from "leaflet";
 
-/* -----------------------------
-   YOUR LOCAL RED MARKER ICON
-------------------------------*/
+/* ---------------------------------------------------------
+   IMPORTANT: FIX LEAFLET DEFAULT ICONS
+--------------------------------------------------------- */
+import marker2x from "/marker-icon-2x.png";
+import marker from "/marker-icon.png";
+import shadow from "/marker-shadow.png";
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: marker2x,
+  iconUrl: marker,
+  shadowUrl: shadow,
+});
+
+/* ---------------------------------------------------------
+   YOUR CUSTOM RED MARKER
+--------------------------------------------------------- */
 const redMarkerIcon = L.icon({
-  iconUrl: "/red-marker.png", // ✔ comes from public folder
+  iconUrl: "/red-marker.png",
   iconSize: [32, 48],
   iconAnchor: [16, 48],
   popupAnchor: [0, -45],
@@ -29,7 +42,6 @@ const MapPage = () => {
   const [tempMarker, setTempMarker] = useState(null);
   const [showPanel, setShowPanel] = useState(false);
   const [newMarkerIds, setNewMarkerIds] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     name: "",
@@ -45,16 +57,12 @@ const MapPage = () => {
   ------------------------------*/
   const loadStations = async () => {
     try {
-      setLoading(true);
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/stations`
       );
       setStations(res.data || []);
     } catch (err) {
-      console.error("Failed to load:", err);
-      setStations([]);
-    } finally {
-      setLoading(false);
+      console.error("Failed to load stations:", err);
     }
   };
 
@@ -106,13 +114,13 @@ const MapPage = () => {
       setStations((prev) => [...prev, newStation]);
       setNewMarkerIds((prev) => [...prev, id]);
 
-      // Remove highlight after 5s
       setTimeout(() => {
         setNewMarkerIds((prev) => prev.filter((x) => x !== id));
       }, 5000);
 
       setTempMarker(null);
       setShowPanel(false);
+
       setForm({
         name: "",
         address: "",
@@ -122,8 +130,8 @@ const MapPage = () => {
         googleFormLink: "",
       });
     } catch (err) {
+      console.error("Create failed:", err);
       alert("Failed to create station");
-      console.error(err);
     }
   };
 
@@ -132,12 +140,14 @@ const MapPage = () => {
   ------------------------------*/
   const handleDelete = async (id) => {
     if (!confirm("Delete this station?")) return;
+
     try {
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/api/stations/${id}`
       );
       setStations((prev) => prev.filter((s) => (s._id || s.id) !== id));
     } catch (err) {
+      console.error(err);
       alert("Delete failed");
     }
   };
@@ -152,13 +162,13 @@ const MapPage = () => {
         { name: "Guest" }
       );
       alert("Request sent!");
-    } catch {
+    } catch (err) {
       alert("Failed to send request");
     }
   };
 
   /* -----------------------------
-      FILTERED STATIONS
+      FILTER
   ------------------------------*/
   const filteredStations = stations.filter((s) => {
     const lat = s.location?.lat;
@@ -178,14 +188,12 @@ const MapPage = () => {
       <MapContainer
         center={[10.776, 106.7]}
         zoom={13}
-        className="map"
         style={{ height: "100vh", width: "100%" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         <MapClick />
 
-        {/* EXISTING MARKERS */}
         {filteredStations.map((s) => {
           const id = s._id || s.id;
           const lat = s.location?.lat;
@@ -206,20 +214,13 @@ const MapPage = () => {
                 <p>{(s.activities || []).join(", ")}</p>
 
                 <button onClick={() => handleVolunteer(id)}>Volunteer</button>
-                <button
-                  onClick={() =>
-                    (window.location.href = `/edit-station/${id}`)
-                  }
-                >
-                  Edit
-                </button>
+                <button onClick={() => (window.location.href = `/edit-station/${id}`)}>Edit</button>
                 <button onClick={() => handleDelete(id)}>Delete</button>
               </Popup>
             </Marker>
           );
         })}
 
-        {/* TEMPORARY MARKER */}
         {tempMarker && (
           <Marker
             position={[tempMarker.lat, tempMarker.lng]}
@@ -228,7 +229,7 @@ const MapPage = () => {
         )}
       </MapContainer>
 
-      {/* SIDE PANEL */}
+      {/* PANEL */}
       <div className={`side-panel ${showPanel ? "open" : ""}`}>
         <button
           className="close-btn"
@@ -275,7 +276,7 @@ const MapPage = () => {
           }
         />
 
-        <label>Google Form (optional)</label>
+        <label>Google Form</label>
         <input
           value={form.googleFormLink}
           onChange={(e) =>
