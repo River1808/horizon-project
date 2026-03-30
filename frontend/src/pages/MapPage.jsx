@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -22,16 +22,6 @@ const fixLeafletIcons = () => {
   });
 };
 
-// Red marker for newly added stations
-const createNewMarkerIcon = () => L.icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  iconRetinaUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
-
 const MapPage = () => {
   const [stations, setStations] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
@@ -40,7 +30,7 @@ const MapPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mapReady, setMapReady] = useState(false);
-  const [newMarkerIcon, setNewMarkerIcon] = useState(null);
+  const newMarkerIconRef = useRef(null);
   const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
@@ -71,12 +61,23 @@ const MapPage = () => {
   useEffect(() => {
     // Initialize Leaflet icons
     fixLeafletIcons();
-    setNewMarkerIcon(createNewMarkerIcon());
+    newMarkerIconRef.current = L.icon({
+      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+      iconRetinaUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+      shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+    });
 
     loadStations();
     // Ensure map is ready after component mounts
     const timer = setTimeout(() => setMapReady(true), 100);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      // Cleanup on unmount
+      setTempMarker(null);
+    };
   }, []);
 
   // Handle map click to place temporary marker
@@ -267,7 +268,7 @@ const MapPage = () => {
                 <Marker
                   key={id}
                   position={[lat, lng]}
-                  icon={isNew && newMarkerIcon ? newMarkerIcon : undefined}
+                  icon={isNew && newMarkerIconRef.current ? newMarkerIconRef.current : undefined}
                 >
                   <Popup>
                     <h3>{s.name}</h3>
@@ -301,7 +302,7 @@ const MapPage = () => {
             })}
 
             {/* Temporary marker - only show when map is ready */}
-            {mapReady && !loading && !error && tempMarker && <Marker position={tempMarker} />}
+            {mapReady && !loading && !error && tempMarker && <Marker key="temp-marker" position={tempMarker} />}
           </MapContainer>
         </div>
 
