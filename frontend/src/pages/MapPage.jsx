@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -10,35 +10,40 @@ import axios from "axios";
 import { useSearch } from "../contexts/SearchContext";
 import "leaflet/dist/leaflet.css";
 import "./MapPage.css";
-import * as L from "leaflet";
+import L from "leaflet";
 
-// Fix Leaflet default markers in React - moved inside component to avoid build issues
-const fixLeafletIcons = () => {
-  delete L.Icon.Default.prototype._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-  });
-};
+/* -----------------------------
+   FIX LEAFLET MISSING ICON BUG
+------------------------------*/
+delete L.Icon.Default.prototype._getIconUrl;
 
-// Red marker for newly added stations - created at module level
-const newMarkerIcon = L.icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+/* -----------------------------
+   YOUR LOCAL RED MARKER ICON
+------------------------------*/
+const redMarkerIcon = L.icon({
+  iconUrl: "/red-marker.png", // ✔ comes from public folder
+  iconSize: [32, 48],
+  iconAnchor: [16, 48],
+  popupAnchor: [0, -45],
 });
 
 const MapPage = () => {
+  const { searchTerm } = useSearch();
+
   const [stations, setStations] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
   const [showPanel, setShowPanel] = useState(false);
   const [newMarkerIds, setNewMarkerIds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [mapReady, setMapReady] = useState(false);
-  const { searchTerm } = useSearch();
 
   const [form, setForm] = useState({
     name: "",
@@ -49,55 +54,47 @@ const MapPage = () => {
     googleFormLink: "",
   });
 
-  // Load stations from API
+  /* -----------------------------
+      LOAD STATIONS
+  ------------------------------*/
   const loadStations = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/stations`);
-      setStations(res.data);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/stations`
+      );
+      setStations(res.data || []);
     } catch (err) {
-      console.error("Load error:", err);
-      setError("Failed to load stations. Please check your connection.");
-      setStations([]); // Ensure stations is empty on error
+      console.error("Failed to load:", err);
+      setStations([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Initialize Leaflet icons
-    fixLeafletIcons();
-
     loadStations();
-    // Ensure map is ready after component mounts
-    const timer = setTimeout(() => setMapReady(true), 100);
-    return () => {
-      clearTimeout(timer);
-      // Cleanup on unmount
-      setTempMarker(null);
-    };
   }, []);
 
-  // Handle map click to place temporary marker
+  /* -----------------------------
+      MAP CLICK → PLACE NEW MARKER
+  ------------------------------*/
   const MapClick = () => {
     useMapEvents({
       click(e) {
-        // Only allow clicking when map is ready and not loading/error
-        if (mapReady && !loading && !error) {
-          setTempMarker(e.latlng);
-          setShowPanel(true);
-        }
+        setTempMarker(e.latlng);
+        setShowPanel(true);
       },
     });
     return null;
   };
 
-  // Submit new station
+  /* -----------------------------
+      SUBMIT NEW STATION
+  ------------------------------*/
   const handleSubmit = async () => {
-    if (!tempMarker || error || !mapReady) return;
+    if (!tempMarker) return;
 
-    // ✅ Nest lat/lng inside `location` for backend
     const payload = {
       name: form.name,
       address: form.address,
@@ -112,19 +109,21 @@ const MapPage = () => {
     };
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/stations`, payload);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/stations`,
+        payload
+      );
 
-      // Add new station instantly - use the response data directly (it should have correct location)
       const newStation = res.data;
-      const stationId = newStation._id || newStation.id;
+      const id = newStation._id || newStation.id;
 
-      if (stationId) {
-        setStations((prev) => [...prev, newStation]);
-        setNewMarkerIds((prev) => [...prev, stationId]);
-      } else {
-        // If no ID, reload stations to get the correct data
-        loadStations();
-      }
+      setStations((prev) => [...prev, newStation]);
+      setNewMarkerIds((prev) => [...prev, id]);
+
+      // Remove highlight after 5s
+      setTimeout(() => {
+        setNewMarkerIds((prev) => prev.filter((x) => x !== id));
+      }, 5000);
 
       setTempMarker(null);
       setShowPanel(false);
@@ -136,241 +135,171 @@ const MapPage = () => {
         volunteersNeeded: "",
         googleFormLink: "",
       });
-
-      // Remove red highlight after 5 seconds
-      setTimeout(() => {
-        if (stationId) {
-          setNewMarkerIds((prev) => prev.filter((id) => id !== stationId));
-        }
-      }, 5000);
     } catch (err) {
-      console.error("Submit error:", err);
-      alert("Failed to create station. Please try again.");
-      // Reload stations in case of error to ensure consistency
-      loadStations();
+      alert("Failed to create station");
+      console.error(err);
     }
   };
 
-  // Delete station
+  /* -----------------------------
+      DELETE
+  ------------------------------*/
   const handleDelete = async (id) => {
     if (!confirm("Delete this station?")) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/stations/${id}`);
-      // Remove from local state immediately
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/stations/${id}`
+      );
       setStations((prev) => prev.filter((s) => (s._id || s.id) !== id));
     } catch (err) {
-      console.error("Delete error:", err);
-      alert("Failed to delete station.");
-      // Reload stations in case of error to ensure consistency
-      loadStations();
+      alert("Delete failed");
     }
   };
 
-  // Volunteer request
+  /* -----------------------------
+      VOLUNTEER
+  ------------------------------*/
   const handleVolunteer = async (id) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/stations/${id}/volunteer-request`, {
-        userName: "Guest",
-        message: "Interested in volunteering",
-      });
-      alert("Volunteer request submitted!");
-    } catch (err) {
-      console.error("Volunteer error:", err);
-      alert("Failed to submit volunteer request.");
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/stations/${id}/volunteer-request`,
+        { name: "Guest" }
+      );
+      alert("Request sent!");
+    } catch {
+      alert("Failed to send request");
     }
   };
 
-  // Filter stations by search term and valid location
+  /* -----------------------------
+      FILTERED STATIONS
+  ------------------------------*/
   const filteredStations = stations.filter((s) => {
     const lat = s.location?.lat;
     const lng = s.location?.lng;
-    if (lat === undefined || lng === undefined) return false;
+    if (!lat || !lng) return false;
 
-    const nameMatch = s.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const activityMatch = (s.activities || []).some((a) =>
-      a.toLowerCase().includes(searchTerm.toLowerCase())
+    const term = searchTerm.toLowerCase();
+
+    return (
+      s.name?.toLowerCase().includes(term) ||
+      (s.activities || []).some((a) => a.toLowerCase().includes(term))
     );
-
-    return nameMatch || activityMatch;
   });
 
   return (
-    <div>
-      <section className="map-hero">
-        <div className="map-hero-text">
-          <h1>STEAM Stations Map</h1>
-          <p>Click anywhere on the map to create a new station.</p>
-        </div>
-        <div className="map-hero-img">
-          <img src="/map-hero.jpg" alt="Map Hero" />
-        </div>
-      </section>
+    <div className="map-page">
+      <MapContainer
+        center={[10.776, 106.7]}
+        zoom={13}
+        className="map"
+        style={{ height: "100vh", width: "100%" }}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      <div className="map-container">
-        <div className="map-wrapper">
-          {error && (
-            <div className="error-message" style={{
-              position: 'absolute',
-              top: '10px',
-              left: '10px',
-              background: 'red',
-              color: 'white',
-              padding: '10px',
-              borderRadius: '5px',
-              zIndex: 1000
-            }}>
-              {error}
-              <button
-                onClick={loadStations}
-                style={{ marginLeft: '10px', background: 'white', color: 'red', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer' }}
-              >
-                Retry
-              </button>
-            </div>
-          )}
+        <MapClick />
 
-          {loading && (
-            <div className="loading-message" style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              background: 'blue',
-              color: 'white',
-              padding: '10px',
-              borderRadius: '5px',
-              zIndex: 1000
-            }}>
-              Loading stations...
-            </div>
-          )}
+        {/* EXISTING MARKERS */}
+        {filteredStations.map((s) => {
+          const id = s._id || s.id;
+          const lat = s.location?.lat;
+          const lng = s.location?.lng;
+          if (!lat || !lng) return null;
 
-          {/* MapContainer - stable key to prevent unnecessary remounting */}
-          <MapContainer
-            key="main-map"
-            center={[10.776, 106.7]}
-            zoom={13}
-            className="map"
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <MapClick />
+          const isNew = newMarkerIds.includes(id);
 
-            {/* Render markers only when map is ready, loaded and no error */}
-            {mapReady && !loading && !error && filteredStations.map((s) => {
-              const lat = s.location?.lat;
-              const lng = s.location?.lng;
-              const id = s._id || s.id;
-              const isNew = newMarkerIds.includes(id);
+          return (
+            <Marker
+              key={id}
+              position={[lat, lng]}
+              icon={isNew ? redMarkerIcon : undefined}
+            >
+              <Popup>
+                <h3>{s.name}</h3>
+                <p>{s.address}</p>
+                <p>{(s.activities || []).join(", ")}</p>
 
-              if (!lat || !lng) return null;
-
-              return (
-                <Marker
-                  key={id}
-                  position={[lat, lng]}
-                  icon={isNew ? newMarkerIcon : undefined}
+                <button onClick={() => handleVolunteer(id)}>Volunteer</button>
+                <button
+                  onClick={() =>
+                    (window.location.href = `/edit-station/${id}`)
+                  }
                 >
-                  <Popup>
-                    <h3>{s.name}</h3>
-                    <p>📍 {s.address}</p>
-                    <p>🎯 {(s.activities || []).join(", ")}</p>
-                    <p>👤 {s.manager}</p>
-                    {s.googleFormLink && (
-                      <p>
-                        📝{" "}
-                        <a
-                          href={s.googleFormLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Registration Form
-                        </a>
-                      </p>
-                    )}
-                    <button className="volunteer-btn" onClick={() => handleVolunteer(id)}>
-                      Volunteer
-                    </button>
-                    <button className="edit-btn" onClick={() => (window.location.href = `/edit-station/${id}`)}>
-                      Edit
-                    </button>
-                    <button className="delete-btn" onClick={() => handleDelete(id)}>
-                      Delete
-                    </button>
-                  </Popup>
-                </Marker>
-              );
-            })}
+                  Edit
+                </button>
+                <button onClick={() => handleDelete(id)}>Delete</button>
+              </Popup>
+            </Marker>
+          );
+        })}
 
-            {/* Temporary marker - only show when map is ready */}
-            {mapReady && !loading && !error && tempMarker && <Marker key="temp-marker" position={tempMarker} />}
-          </MapContainer>
-        </div>
-
-        {/* Side panel for adding station */}
-        <div className={`side-panel ${showPanel ? "open" : ""}`}>
-          <button
-            className="close-btn"
-            onClick={() => {
-              setShowPanel(false);
-              setTempMarker(null);
-            }}
-          >
-            ✕
-          </button>
-
-          <h2>Create Station</h2>
-
-          <label>Name</label>
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+        {/* TEMPORARY MARKER */}
+        {tempMarker && (
+          <Marker
+            position={[tempMarker.lat, tempMarker.lng]}
+            icon={redMarkerIcon}
           />
+        )}
+      </MapContainer>
 
-          <label>Address</label>
-          <input
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-          />
+      {/* SIDE PANEL */}
+      <div className={`side-panel ${showPanel ? "open" : ""}`}>
+        <button
+          className="close-btn"
+          onClick={() => {
+            setShowPanel(false);
+            setTempMarker(null);
+          }}
+        >
+          ✕
+        </button>
 
-          <label>Activity</label>
-          <textarea
-            value={form.activity}
-            onChange={(e) => setForm({ ...form, activity: e.target.value })}
-          />
+        <h2>Create Station</h2>
 
-          <label>Manager</label>
-          <input
-            value={form.manager}
-            onChange={(e) => setForm({ ...form, manager: e.target.value })}
-          />
+        <label>Name</label>
+        <input
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
 
-          <label>Volunteers Needed</label>
-          <input
-            type="number"
-            value={form.volunteersNeeded}
-            onChange={(e) => setForm({ ...form, volunteersNeeded: e.target.value })}
-          />
+        <label>Address</label>
+        <input
+          value={form.address}
+          onChange={(e) => setForm({ ...form, address: e.target.value })}
+        />
 
-          <label>Google Form (optional)</label>
-          <input
-            value={form.googleFormLink}
-            onChange={(e) => setForm({ ...form, googleFormLink: e.target.value })}
-            placeholder="https://forms.gle/123..."
-          />
+        <label>Activity</label>
+        <textarea
+          value={form.activity}
+          onChange={(e) => setForm({ ...form, activity: e.target.value })}
+        />
 
-          <button className="submit-btn" onClick={handleSubmit}>
-            Submit
-          </button>
+        <label>Manager</label>
+        <input
+          value={form.manager}
+          onChange={(e) => setForm({ ...form, manager: e.target.value })}
+        />
 
-          <button
-            className="cancel-btn"
-            onClick={() => {
-              setShowPanel(false);
-              setTempMarker(null);
-            }}
-          >
-            Cancel
-          </button>
-        </div>
+        <label>Volunteers Needed</label>
+        <input
+          type="number"
+          value={form.volunteersNeeded}
+          onChange={(e) =>
+            setForm({ ...form, volunteersNeeded: e.target.value })
+          }
+        />
+
+        <label>Google Form (optional)</label>
+        <input
+          value={form.googleFormLink}
+          onChange={(e) =>
+            setForm({ ...form, googleFormLink: e.target.value })
+          }
+        />
+
+        <button className="submit-btn" onClick={handleSubmit}>
+          Submit
+        </button>
       </div>
     </div>
   );
