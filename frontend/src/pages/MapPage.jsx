@@ -15,14 +15,10 @@ import L from "leaflet";
 /* ---------------------------------------------------------
    IMPORTANT: FIX LEAFLET DEFAULT ICONS
 --------------------------------------------------------- */
-import marker2x from "/marker-icon-2x.png";
-import marker from "/marker-icon.png";
-import shadow from "/marker-shadow.png";
-
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: marker2x,
-  iconUrl: marker,
-  shadowUrl: shadow,
+  iconRetinaUrl: "/red-marker.png",
+  iconUrl: "/red-marker.png",
+  shadowUrl: "" // optional
 });
 
 /* ---------------------------------------------------------
