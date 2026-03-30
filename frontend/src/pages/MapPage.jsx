@@ -140,11 +140,49 @@ const MapPage = () => {
             const lat = station.location?.lat;
             const lng = station.location?.lng;
             if (lat === undefined || lng === undefined) return null;
+            const id = station._id || station.id;
+
             return (
-              <Marker key={station._id || station.id || `${lat}-${lng}`} position={[lat, lng]} icon={redMarkerIcon}>
+              <Marker key={id || `${lat}-${lng}`} position={[lat, lng]} icon={redMarkerIcon}>
                 <Popup>
-                  <strong>{station.name || "Untitled"}</strong>
-                  <div>{station.address || "No address"}</div>
+                  <h3>{station.name || "Untitled Station"}</h3>
+                  <p><strong>Address:</strong> {station.address || "No address"}</p>
+                  <p><strong>Activity:</strong> {station.activities?.join(", ") || station.activity || "None"}</p>
+                  <p><strong>Manager:</strong> {station.manager || "Unknown"}</p>
+                  <p><strong>Volunteers needed:</strong> {station.volunteersNeeded ?? "N/A"}</p>
+                  {station.googleFormLink && (
+                    <p>
+                      <strong>Form:</strong>{" "}
+                      <a href={station.googleFormLink} target="_blank" rel="noopener noreferrer">
+                        Open registration form
+                      </a>
+                    </p>
+                  )}
+                  <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+                    <button
+                      className="edit-btn"
+                      onClick={() => {
+                        window.location.href = `/edit-station/${id}`;
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={async () => {
+                        if (!confirm("Delete this station?")) return;
+                        try {
+                          await axios.delete(`${import.meta.env.VITE_API_URL}/api/stations/${id}`);
+                          setStations((prev) => prev.filter((s) => (s._id || s.id) !== id));
+                        } catch (err) {
+                          console.error("Delete failed", err);
+                          alert("Failed to delete station");
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </Popup>
               </Marker>
             );
