@@ -38,22 +38,25 @@ const EditMapPage = () => {
   });
 
   const [markerPosition, setMarkerPosition] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
   // Load station details and initialize icons
   useEffect(() => {
-    // Initialize Leaflet icons
     fixLeafletIcons();
+    setLoading(true);
+    setFetchError(null);
 
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/stations/${id}`)
       .then((res) => {
         const st = res.data;
         setForm({
-          name: st.name,
-          address: st.address,
-          activities: st.activities.join(", "),
-          manager: st.manager,
-          volunteersNeeded: st.volunteersNeeded,
+          name: st.name || "",
+          address: st.address || "",
+          activities: (st.activities || []).join(", "),
+          manager: st.manager || "",
+          volunteersNeeded: st.volunteersNeeded || "",
           googleFormLink: st.googleFormLink || "",
         });
 
@@ -61,7 +64,17 @@ const EditMapPage = () => {
           setMarkerPosition({ lat: st.location.lat, lng: st.location.lng });
         }
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error("Load edit station failed", err);
+        if (err.response?.status === 404) {
+          setFetchError("Station not found (404). Please check the URL or create a station first.");
+        } else {
+          setFetchError("Failed to load station data. Please try again.");
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [id]);
 
   const handleSubmit = async () => {
@@ -100,6 +113,25 @@ const EditMapPage = () => {
     });
     return null;
   };
+
+  if (loading) {
+    return (
+      <div className="edit-page">
+        <h1>Edit Station</h1>
+        <p>Loading station data...</p>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="edit-page">
+        <h1>Edit Station</h1>
+        <div className="error-message">{fetchError}</div>
+        <button className="cancel-btn" onClick={() => navigate("/map")}>Back to map</button>
+      </div>
+    );
+  }
 
   return (
     <div className="edit-page">
