@@ -36,14 +36,12 @@ public class ResultController {
 
         // 1️⃣ Check if result already exists
         Optional<Result> existingResult = resultRepository.findByUserId(userId);
-        if (existingResult.isPresent()) {
-            return existingResult.get();
-        }
+        if (existingResult.isPresent()) return existingResult.get();
 
-        // 2️⃣ Get user response
+        // 2️⃣ Fetch user's response
         Optional<Response> responseOpt = responseRepository.findByUserId(userId);
 
-        // 3️⃣ Initialize scores
+        // 3️⃣ Initialize category scores
         Map<String, Integer> scores = new HashMap<>();
         scores.put("Science", 0);
         scores.put("Technology", 0);
@@ -51,9 +49,8 @@ public class ResultController {
         scores.put("Arts", 0);
         scores.put("Math", 0);
 
-        // 4️⃣ If no response → return empty result
+        // 4️⃣ Return empty if no response
         if (responseOpt.isEmpty()) {
-
             Result emptyResult = new Result(
                     userId,
                     scores,
@@ -61,48 +58,42 @@ public class ResultController {
                     "None",
                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
             );
-
             return resultRepository.save(emptyResult);
         }
 
         Response response = responseOpt.get();
 
-        // 5️⃣ Count points
+        // 5️⃣ Count points per answer
         for (Response.Answer answer : response.getAnswers()) {
-
-            Optional<Question> questionOpt =
-                    questionRepository.findById(answer.getQuestionId());
-
+            Optional<Question> questionOpt = questionRepository.findById(answer.getQuestionId());
             if (questionOpt.isEmpty()) continue;
 
             Question question = questionOpt.get();
-
             int index = answer.getSelectedOptionIndex();
 
-            if (index < 0 || index >= question.getOptions().size())
-                continue;
+            if (index < 0 || index >= question.getOptions().size()) continue;
 
             Question.Option option = question.getOptions().get(index);
-
             String category = option.getCategory();
             int points = option.getPoints();
 
             if (category == null || category.isEmpty()) continue;
 
-            scores.put(
-                    category,
-                    scores.getOrDefault(category, 0) + points
-            );
+            // For Math questions (câu 21–25), increment Math instead
+            if ("Math".equalsIgnoreCase(category)) {
+                scores.put("Math", scores.get("Math") + points);
+            } else {
+                scores.put(category, scores.getOrDefault(category, 0) + points);
+            }
         }
 
-        // 6️⃣ Find main field
+        // 6️⃣ Determine main and secondary fields
         String mainField = scores.entrySet()
                 .stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("None");
 
-        // 7️⃣ Find secondary field
         Map<String, Integer> copyScores = new HashMap<>(scores);
         copyScores.remove(mainField);
 
@@ -112,7 +103,7 @@ public class ResultController {
                 .map(Map.Entry::getKey)
                 .orElse("None");
 
-        // 8️⃣ Save result
+        // 7️⃣ Save and return result
         Result result = new Result(
                 userId,
                 scores,
@@ -137,14 +128,11 @@ public class ResultController {
     // ================================
     @DeleteMapping("/results/{userId}")
     public String deleteResult(@PathVariable String userId) {
-
         Optional<Result> result = resultRepository.findByUserId(userId);
-
         if (result.isPresent()) {
             resultRepository.delete(result.get());
             return "Result deleted";
         }
-
         return "Result not found";
     }
 }
