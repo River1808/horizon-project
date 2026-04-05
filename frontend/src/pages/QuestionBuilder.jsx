@@ -7,7 +7,8 @@ const QuestionBuilder = () => {
   const navigate = useNavigate();
 
   const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState([{ text: "", correct: false }]);
+  const [section, setSection] = useState("");
+  const [options, setOptions] = useState([{ text: "", category: "", points: 1 }]);
 
   // Load existing question if editing
   useEffect(() => {
@@ -17,28 +18,20 @@ const QuestionBuilder = () => {
       .get(`${import.meta.env.VITE_API_URL}/api/questions/${id}`)
       .then((res) => {
         setQuestion(res.data.question);
+        setSection(res.data.section);
         setOptions(res.data.options);
       })
       .catch(() => alert("Error loading question"));
   }, [id]);
 
   const addOption = () => {
-    setOptions([...options, { text: "", correct: false }]);
+    setOptions([...options, { text: "", category: "", points: 1 }]);
   };
 
-  const updateOption = (index, value) => {
+  const updateOption = (index, field, value) => {
     const updated = [...options];
-    updated[index].text = value;
+    updated[index][field] = value;
     setOptions(updated);
-  };
-
-  const setCorrectOption = (index) => {
-    setOptions(
-      options.map((opt, i) => ({
-        ...opt,
-        correct: i === index,
-      }))
-    );
   };
 
   const removeOption = (index) => {
@@ -48,12 +41,11 @@ const QuestionBuilder = () => {
 
   const handleSubmit = async () => {
     if (!question.trim()) return alert("Question cannot be empty");
-    if (options.some((o) => !o.text.trim()))
-      return alert("Options cannot be empty");
-    if (!options.some((o) => o.correct))
-      return alert("Select the correct answer");
+    if (!section.trim()) return alert("Section cannot be empty");
+    if (options.some((o) => !o.text.trim() || !o.category.trim() || o.points <= 0))
+      return alert("All options must have text, category, and positive points");
 
-    const payload = { question, options };
+    const payload = { question, section, options };
 
     try {
       if (id) {
@@ -87,19 +79,42 @@ const QuestionBuilder = () => {
         placeholder="Enter question"
       />
 
+      <input
+        type="text"
+        value={section}
+        onChange={(e) => setSection(e.target.value)}
+        className="w-full border p-3 rounded mb-6"
+        placeholder="Enter section (e.g., Science, Math)"
+      />
+
       <div className="space-y-4">
         {options.map((opt, i) => (
           <div key={i} className="flex items-center gap-3">
             <input
-              type="radio"
-              checked={opt.correct}
-              onChange={() => setCorrectOption(i)}
-            />
-            <input
               type="text"
               value={opt.text}
+              onChange={(e) => updateOption(i, 'text', e.target.value)}
               className="flex-1 border p-2 rounded"
-              onChange={(e) => updateOption(i, e.target.value)}
+              placeholder="Option text"
+            />
+            <select
+              value={opt.category}
+              onChange={(e) => updateOption(i, 'category', e.target.value)}
+              className="border p-2 rounded"
+            >
+              <option value="">Select Category</option>
+              <option value="Science">Science</option>
+              <option value="Technology">Technology</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Arts">Arts</option>
+              <option value="Math">Math</option>
+            </select>
+            <input
+              type="number"
+              value={opt.points}
+              onChange={(e) => updateOption(i, 'points', parseInt(e.target.value) || 1)}
+              className="border p-2 rounded w-20"
+              min="1"
             />
             <button
               onClick={() => removeOption(i)}

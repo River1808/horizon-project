@@ -116,16 +116,28 @@ const Questionnaire = () => {
         {/* RESULT */}
         {result && (
           <div className="result-box">
-            <h2>Your Main Field: {result.mainField}</h2>
-            <p>Secondary Field: {result.secondaryField}</p>
-            <p>Career Suggestion: {result.careerSuggestion}</p>
+            <h2>Your Assessment Results</h2>
+            <p><strong>Main Interest:</strong> {result.mainField}</p>
+            <p><strong>Secondary Interest:</strong> {result.secondaryField}</p>
             <div>
-              <h3>Scores:</h3>
+              <h3>Your Scores:</h3>
               <ul>
                 {Object.entries(result.scores).map(([category, score]) => (
-                  <li key={category}>{category}: {score}</li>
+                  <li key={category}><strong>{category}:</strong> {score} points</li>
                 ))}
               </ul>
+            </div>
+            <div className="interpretation">
+              <h3>Interpretation Guide</h3>
+              <p>Compare your scores to understand your strengths:</p>
+              <ul>
+                <li><strong>Science:</strong> Analytical thinking, research, problem-solving</li>
+                <li><strong>Technology:</strong> Innovation, programming, digital tools</li>
+                <li><strong>Engineering:</strong> Design, building, technical solutions</li>
+                <li><strong>Arts:</strong> Creativity, communication, design</li>
+                <li><strong>Math:</strong> Logic, patterns, quantitative analysis</li>
+              </ul>
+              <p>Higher scores indicate stronger interests in those areas. Use this to explore related careers and educational paths.</p>
             </div>
           </div>
         )}

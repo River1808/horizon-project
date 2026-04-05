@@ -49,10 +49,11 @@ const QuestionsList = () => {
             >
               <div>
                 <p className="font-semibold">{q.question}</p>
+                <p className="text-sm text-gray-500">Section: {q.section}</p>
                 <ul className="ml-4 text-gray-600 text-sm">
                   {q.options.map((opt, i) => (
                     <li key={i}>
-                      {opt.text} {opt.correct ? "⭐" : ""}
+                      {opt.text} - {opt.category} (+{opt.points})
                     </li>
                   ))}
                 </ul>

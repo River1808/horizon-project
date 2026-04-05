@@ -1,12 +1,13 @@
 package com.herizon.backend.controller;
 
-import com.herizon.backend.dto.QuestionSubmissionDTO;
 import com.herizon.backend.model.Question;
 import com.herizon.backend.repository.QuestionRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @RestController
@@ -20,6 +21,8 @@ public class QuestionController {
     // Create a question
     @PostMapping("/questions")
     public Question createQuestion(@RequestBody Question question) {
+        if (question.getCreatedBy() == null) question.setCreatedBy("admin");
+        if (question.getCreatedAt() == null) question.setCreatedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return questionRepository.save(question);
     }
 
@@ -27,30 +30,6 @@ public class QuestionController {
     @GetMapping("/questions")
     public List<Question> getQuestions() {
         return questionRepository.findAll();
-    }
-
-    // Submit answers & evaluate
-    @PostMapping("/questionnaire/submit")
-    public Map<String, Object> gradeAnswers(@RequestBody QuestionSubmissionDTO submission) {
-
-        List<Question> questions = questionRepository.findAll();
-        int score = 0;
-
-        for (Question q : questions) {
-            String userAns = submission.getAnswers().get(q.getId());
-            if (userAns == null) continue;
-
-            boolean correct = q.getOptions().stream()
-                    .anyMatch(opt -> opt.getText().equals(userAns) && opt.isCorrect());
-
-            if (correct) score++;
-        }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("total", questions.size());
-        result.put("score", score);
-
-        return result;
     }
 
     // Get one question by id
@@ -67,6 +46,7 @@ public class QuestionController {
                 .orElseThrow(() -> new NoSuchElementException("Question not found: " + id));
 
         existing.setQuestion(updated.getQuestion());
+        existing.setSection(updated.getSection());
         existing.setOptions(updated.getOptions());
 
         return questionRepository.save(existing);
@@ -79,10 +59,5 @@ public class QuestionController {
             throw new NoSuchElementException("Question not found: " + id);
         }
         questionRepository.deleteById(id);
-    }
-
-    @PostMapping
-    public Question addQuestion(@RequestBody Question question) {
-        return questionRepository.save(question);
     }
 }
