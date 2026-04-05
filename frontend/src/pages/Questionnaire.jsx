@@ -85,7 +85,7 @@ const Questionnaire = () => {
         {!loading && !result && (
           <div className="question-list">
             {questions.map((q) => {
-              const questionId = q.id || q._id;
+              const questionId = q._id || q.id;
               return (
                 <div key={questionId} className="question-card">
                   <p className="question-title">{q.question}</p>
