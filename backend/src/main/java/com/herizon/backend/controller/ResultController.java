@@ -36,7 +36,16 @@ public class ResultController {
         List<Question> questions = questionRepository.findAll();
         List<Response> responses = responseRepository.findAll();
         Optional<Response> userResponse = responses.stream().filter(r -> userId.equals(r.getUserId())).findFirst();
-        if (userResponse.isEmpty()) throw new NoSuchElementException("No response found for user: " + userId);
+        if (userResponse.isEmpty()) {
+            // Return a default result if no response found
+            Map<String, Integer> defaultScores = new HashMap<>();
+            defaultScores.put("Science", 0);
+            defaultScores.put("Technology", 0);
+            defaultScores.put("Engineering", 0);
+            defaultScores.put("Arts", 0);
+            defaultScores.put("Math", 0);
+            return new Result(userId, defaultScores, "None", "None", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        }
 
         Map<String, Integer> scores = new HashMap<>();
         scores.put("Science", 0);
