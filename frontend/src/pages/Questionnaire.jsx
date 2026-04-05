@@ -5,7 +5,7 @@ import "./Questionnaire.css"; // <-- NEW CSS FILE YOU WILL CREATE
 
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState([]);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,14 +19,32 @@ const Questionnaire = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleOptionChange = (questionId, optionIndex) => {
+    setAnswers(prev => {
+      const existingIndex = prev.findIndex(a => a.questionId === questionId);
+      if (existingIndex !== -1) {
+        const newAnswers = [...prev];
+        newAnswers[existingIndex] = { questionId, selectedOptionIndex: optionIndex };
+        return newAnswers;
+      } else {
+        return [...prev, { questionId, selectedOptionIndex: optionIndex }];
+      }
+    });
+  };
+
   const handleSubmit = () => {
+    const userId = "guest"; // Assuming guest user
     axios
-      .post(`${import.meta.env.VITE_API_URL}/api/questionnaire/submit`, {
-        userName: "Guest",
+      .post(`${import.meta.env.VITE_API_URL}/api/responses`, {
+        userId,
         answers,
       })
+      .then(() => {
+        // After submitting, fetch the result
+        return axios.get(`${import.meta.env.VITE_API_URL}/api/results/${userId}`);
+      })
       .then((res) => setResult(res.data))
-      .catch((err) => console.error("Submit error:", err));
+      .catch((err) => console.error("Submit or fetch result error:", err));
   };
 
   return (
@@ -77,10 +95,8 @@ const Questionnaire = () => {
                       <input
                         type="radio"
                         name={questionId}
-                        value={opt.text}
-                        onChange={(e) =>
-                          setAnswers({ ...answers, [questionId]: e.target.value })
-                        }
+                        checked={answers.find(a => a.questionId === questionId)?.selectedOptionIndex === idx}
+                        onChange={() => handleOptionChange(questionId, idx)}
                       />
                       {opt.text}
                     </label>
@@ -100,10 +116,17 @@ const Questionnaire = () => {
         {/* RESULT */}
         {result && (
           <div className="result-box">
-            <h2>
-              Your Score: {result.score} / {result.total}
-            </h2>
-            <p>Great job! Keep learning and improving your skills.</p>
+            <h2>Your Main Field: {result.mainField}</h2>
+            <p>Secondary Field: {result.secondaryField}</p>
+            <p>Career Suggestion: {result.careerSuggestion}</p>
+            <div>
+              <h3>Scores:</h3>
+              <ul>
+                {Object.entries(result.scores).map(([category, score]) => (
+                  <li key={category}>{category}: {score}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
       </div>
