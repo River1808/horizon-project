@@ -8,6 +8,11 @@ const Questionnaire = () => {
   const [answers, setAnswers] = useState([]);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userId] = useState(() => {
+    return typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `user-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  });
 
   const navigate = useNavigate();
 
@@ -33,7 +38,6 @@ const Questionnaire = () => {
   };
 
   const handleSubmit = () => {
-    const userId = "guest"; // Assuming guest user
     axios
       .post(`${import.meta.env.VITE_API_URL}/api/responses`, {
         userId,
