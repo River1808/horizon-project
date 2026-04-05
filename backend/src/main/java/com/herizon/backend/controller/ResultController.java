@@ -1,7 +1,11 @@
 package com.herizon.backend.controller;
 
-import com.herizon.backend.model.*;
-import com.herizon.backend.repository.*;
+import com.herizon.backend.model.Question;
+import com.herizon.backend.model.Response;
+import com.herizon.backend.model.Result;
+import com.herizon.backend.repository.QuestionRepository;
+import com.herizon.backend.repository.ResponseRepository;
+import com.herizon.backend.repository.ResultRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,29 +28,22 @@ public class ResultController {
     @Autowired
     private ResultRepository resultRepository;
 
-    // Get result for user
+    // ================================
+    // GET RESULT BY USER ID
+    // ================================
     @GetMapping("/results/{userId}")
     public Result getResult(@PathVariable String userId) {
-        // Check if result already exists
-        List<Result> existing = resultRepository.findAll();
-        Optional<Result> res = existing.stream().filter(r -> userId.equals(r.getUserId())).findFirst();
-        if (res.isPresent()) return res.get();
 
-        // Calculate new result
-        List<Question> questions = questionRepository.findAll();
-        List<Response> responses = responseRepository.findAll();
-        Optional<Response> userResponse = responses.stream().filter(r -> userId.equals(r.getUserId())).findFirst();
-        if (userResponse.isEmpty()) {
-            // Return a default result if no response found
-            Map<String, Integer> defaultScores = new HashMap<>();
-            defaultScores.put("Science", 0);
-            defaultScores.put("Technology", 0);
-            defaultScores.put("Engineering", 0);
-            defaultScores.put("Arts", 0);
-            defaultScores.put("Math", 0);
-            return new Result(userId, defaultScores, "None", "None", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        // 1️⃣ Check if result already exists
+        Optional<Result> existingResult = resultRepository.findByUserId(userId);
+        if (existingResult.isPresent()) {
+            return existingResult.get();
         }
 
+        // 2️⃣ Get user response
+        Optional<Response> responseOpt = responseRepository.findByUserId(userId);
+
+        // 3️⃣ Initialize scores
         Map<String, Integer> scores = new HashMap<>();
         scores.put("Science", 0);
         scores.put("Technology", 0);
@@ -54,23 +51,100 @@ public class ResultController {
         scores.put("Arts", 0);
         scores.put("Math", 0);
 
-        for (Response.Answer answer : userResponse.get().getAnswers()) {
-            Question question = questions.stream().filter(q -> answer.getQuestionId().equals(q.getId())).findFirst().orElse(null);
-            if (question == null || answer.getSelectedOptionIndex() >= question.getOptions().size()) continue;
-            Question.Option option = question.getOptions().get(answer.getSelectedOptionIndex());
-            String category = option.getCategory();
-            if (category == null || category.isEmpty() || !scores.containsKey(category)) continue;
-            scores.put(category, scores.get(category) + option.getPoints());
+        // 4️⃣ If no response → return empty result
+        if (responseOpt.isEmpty()) {
+
+            Result emptyResult = new Result(
+                    userId,
+                    scores,
+                    "None",
+                    "None",
+                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            );
+
+            return resultRepository.save(emptyResult);
         }
 
-        // Find main and secondary
-        String mainField = scores.entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey();
-        Map<String, Integer> scoresCopy = new HashMap<>(scores);
-        scoresCopy.remove(mainField);
-        String secondaryField = scoresCopy.entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey();
+        Response response = responseOpt.get();
 
-        Result result = new Result(userId, scores, mainField, secondaryField,
-                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        // 5️⃣ Count points
+        for (Response.Answer answer : response.getAnswers()) {
+
+            Optional<Question> questionOpt =
+                    questionRepository.findById(answer.getQuestionId());
+
+            if (questionOpt.isEmpty()) continue;
+
+            Question question = questionOpt.get();
+
+            int index = answer.getSelectedOptionIndex();
+
+            if (index < 0 || index >= question.getOptions().size())
+                continue;
+
+            Question.Option option = question.getOptions().get(index);
+
+            String category = option.getCategory();
+            int points = option.getPoints();
+
+            if (category == null || category.isEmpty()) continue;
+
+            scores.put(
+                    category,
+                    scores.getOrDefault(category, 0) + points
+            );
+        }
+
+        // 6️⃣ Find main field
+        String mainField = scores.entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("None");
+
+        // 7️⃣ Find secondary field
+        Map<String, Integer> copyScores = new HashMap<>(scores);
+        copyScores.remove(mainField);
+
+        String secondaryField = copyScores.entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("None");
+
+        // 8️⃣ Save result
+        Result result = new Result(
+                userId,
+                scores,
+                mainField,
+                secondaryField,
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        );
+
         return resultRepository.save(result);
+    }
+
+    // ================================
+    // GET ALL RESULTS (optional)
+    // ================================
+    @GetMapping("/results")
+    public List<Result> getAllResults() {
+        return resultRepository.findAll();
+    }
+
+    // ================================
+    // DELETE RESULT (optional)
+    // ================================
+    @DeleteMapping("/results/{userId}")
+    public String deleteResult(@PathVariable String userId) {
+
+        Optional<Result> result = resultRepository.findByUserId(userId);
+
+        if (result.isPresent()) {
+            resultRepository.delete(result.get());
+            return "Result deleted";
+        }
+
+        return "Result not found";
     }
 }
