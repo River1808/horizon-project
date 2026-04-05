@@ -56,7 +56,7 @@ public class ResultController {
 
         for (Response.Answer answer : userResponse.get().getAnswers()) {
             Question question = questions.stream().filter(q -> answer.getQuestionId().equals(q.getId())).findFirst().orElse(null);
-            if (question == null) continue;
+            if (question == null || answer.getSelectedOptionIndex() >= question.getOptions().size()) continue;
             Question.Option option = question.getOptions().get(answer.getSelectedOptionIndex());
             scores.put(option.getCategory(), scores.get(option.getCategory()) + option.getPoints());
         }
