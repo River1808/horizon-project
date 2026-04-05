@@ -58,7 +58,9 @@ public class ResultController {
             Question question = questions.stream().filter(q -> answer.getQuestionId().equals(q.getId())).findFirst().orElse(null);
             if (question == null || answer.getSelectedOptionIndex() >= question.getOptions().size()) continue;
             Question.Option option = question.getOptions().get(answer.getSelectedOptionIndex());
-            scores.put(option.getCategory(), scores.get(option.getCategory()) + option.getPoints());
+            String category = option.getCategory();
+            if (category == null || category.isEmpty() || !scores.containsKey(category)) continue;
+            scores.put(category, scores.get(category) + option.getPoints());
         }
 
         // Find main and secondary
