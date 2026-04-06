@@ -119,29 +119,77 @@ const Questionnaire = () => {
 
         {/* RESULT */}
         {result && (
-          <div className="result-box">
-            <h2>Your Assessment Results</h2>
-            <p><strong>Main Interest:</strong> {result.mainField}</p>
-            <p><strong>Secondary Interest:</strong> {result.secondaryField}</p>
-            <div>
-              <h3>Your Scores:</h3>
-              <ul>
-                {Object.entries(result.scores).map(([category, score]) => (
-                  <li key={category}><strong>{category}:</strong> {score} points</li>
-                ))}
-              </ul>
+          <div className="result-container">
+
+            <h2 className="result-title">Your Assessment Results</h2>
+
+            {/* MAIN & SECONDARY */}
+            <div className="result-highlights">
+              <div className="card main">
+                <h3>Main Interest</h3>
+                <p>{result.mainField}</p>
+              </div>
+
+              <div className="card secondary">
+                <h3>Secondary Interest</h3>
+                <p>{result.secondaryField}</p>
+              </div>
             </div>
-            <div className="interpretation">
+
+            {/* SCORES */}
+            <div className="score-box">
+              <h3>Your Scores</h3>
+
+              {Object.entries(result.scores).map(([category, score]) => (
+                <div key={category} className="score-row">
+                  <span className="category">{category}</span>
+
+                  <div className="progress">
+                    <div
+                      className="progress-fill"
+                      style={{ width: `${score * 5}%` }}
+                    ></div>
+                  </div>
+
+                  <span className="points">{score} pts</span>
+                </div>
+              ))}
+            </div>
+
+            {/* INTERPRETATION */}
+            <div className="interpretation-box">
               <h3>Interpretation Guide</h3>
-              <p>Compare your scores to understand your strengths:</p>
-              <ul>
-                <li><strong>Science:</strong> Analytical thinking, research, problem-solving</li>
-                <li><strong>Technology:</strong> Innovation, programming, digital tools</li>
-                <li><strong>Engineering:</strong> Design, building, technical solutions</li>
-                <li><strong>Arts:</strong> Creativity, communication, design</li>
-                <li><strong>Math:</strong> Logic, patterns, quantitative analysis</li>
-              </ul>
-              <p>Higher scores indicate stronger interests in those areas. Use this to explore related careers and educational paths.</p>
+
+              <div className="guide-grid">
+                <div>
+                  <strong>Science</strong>
+                  <p>Analytical thinking, research, problem-solving</p>
+                </div>
+
+                <div>
+                  <strong>Technology</strong>
+                  <p>Innovation, programming, digital tools</p>
+                </div>
+
+                <div>
+                  <strong>Engineering</strong>
+                  <p>Design, building, technical solutions</p>
+                </div>
+
+                <div>
+                  <strong>Arts</strong>
+                  <p>Creativity, communication, design</p>
+                </div>
+
+                <div>
+                  <strong>Math</strong>
+                  <p>Logic, patterns, quantitative analysis</p>
+                </div>
+              </div>
+
+              <p className="note">
+                Higher scores indicate stronger interests in those areas. Use this to explore related careers and educational paths.
+              </p>
             </div>
           </div>
         )}
