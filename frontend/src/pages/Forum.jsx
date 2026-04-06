@@ -11,14 +11,19 @@ export async function getPosts() {
 
 // Function to get username by user ID
 export async function getUsernameById(userId) {
-  if (userId === "anonymous") return "Anonymous";
+  if (!userId || userId === "anonymous" || userId === "Guest User") {
+    return "Anonymous";
+  }
   try {
     const res = await fetch(`${AUTH_API_BASE}/user/${userId}`);
+    if (!res.ok) {
+      return "Anonymous";
+    }
     const data = await res.json();
     return data.username || "Unknown User";
   } catch (err) {
     console.error("Error fetching username:", err);
-    return "Unknown User";
+    return "Anonymous";
   }
 }
 
@@ -46,14 +51,27 @@ export default function Forum() {
   const resolveUsernames = async (items) => {
     const updatedItems = [];
     for (const item of items) {
-      if (!userMap[item.author]) {
+      // Check if author is already a display name (Guest User, anonymous) or needs lookup
+      const isSpecialAuthor = item.author === "anonymous" || item.author === "Guest User" || !item.author;
+      
+      if (isSpecialAuthor) {
+        updatedItems.push({
+          ...item,
+          displayAuthor: "Anonymous"
+        });
+      } else if (userMap[item.author]) {
+        updatedItems.push({
+          ...item,
+          displayAuthor: userMap[item.author]
+        });
+      } else {
         const username = await getUsernameById(item.author);
         setUserMap(prev => ({ ...prev, [item.author]: username }));
+        updatedItems.push({
+          ...item,
+          displayAuthor: username
+        });
       }
-      updatedItems.push({
-        ...item,
-        displayAuthor: userMap[item.author] || await getUsernameById(item.author)
-      });
     }
     return updatedItems;
   };

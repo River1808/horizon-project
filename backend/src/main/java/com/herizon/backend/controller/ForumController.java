@@ -49,13 +49,26 @@ public class ForumController {
     public Post createPost(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Post post) {
-        String userId = extractUserIdFromToken(authHeader);
-        if (userId != null) {
-            post.setAuthor(userId);
-        } else {
-            post.setAuthor("anonymous");
+        try {
+            // Ensure post has required fields
+            if (post.getTitle() == null || post.getTitle().trim().isEmpty()) {
+                post.setTitle("Untitled");
+            }
+            if (post.getContent() == null || post.getContent().trim().isEmpty()) {
+                post.setContent("");
+            }
+            
+            String userId = extractUserIdFromToken(authHeader);
+            if (userId != null) {
+                post.setAuthor(userId);
+            } else {
+                post.setAuthor("anonymous");
+            }
+            return postRepository.save(post);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create post: " + e.getMessage());
         }
-        return postRepository.save(post);
     }
 
     // =============================
@@ -75,13 +88,24 @@ public class ForumController {
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Comment comment) {
 
-        comment.setPostId(postId);
-        String userId = extractUserIdFromToken(authHeader);
-        if (userId != null) {
-            comment.setAuthor(userId);
-        } else {
-            comment.setAuthor("anonymous");
+        try {
+            comment.setPostId(postId);
+            
+            // Ensure comment has required fields
+            if (comment.getContent() == null || comment.getContent().trim().isEmpty()) {
+                comment.setContent("");
+            }
+            
+            String userId = extractUserIdFromToken(authHeader);
+            if (userId != null) {
+                comment.setAuthor(userId);
+            } else {
+                comment.setAuthor("anonymous");
+            }
+            return commentRepository.save(comment);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to add comment: " + e.getMessage());
         }
-        return commentRepository.save(comment);
     }
 }
