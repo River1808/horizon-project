@@ -25,11 +25,11 @@ public class ForumController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Helper method to extract username from Authorization header
-    private String extractUsernameFromToken(String authHeader) {
+    // Helper method to extract userId from Authorization header
+    private String extractUserIdFromToken(String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            return jwtUtil.extractUsername(token);
+            return jwtUtil.extractUserId(token);
         }
         return null;
     }
