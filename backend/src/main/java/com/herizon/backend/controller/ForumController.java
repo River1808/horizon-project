@@ -25,11 +25,11 @@ public class ForumController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Helper method to extract userId from Authorization header
-    private String extractUserIdFromToken(String authHeader) {
+    // Helper method to extract username from Authorization header
+    private String extractUsernameFromToken(String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            return jwtUtil.extractUserId(token);
+            return jwtUtil.extractUsername(token);
         }
         return null;
     }
@@ -49,9 +49,9 @@ public class ForumController {
     public Post createPost(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Post post) {
-        String userId = extractUserIdFromToken(authHeader);
-        if (userId != null) {
-            post.setAuthor(userId);
+        String username = extractUsernameFromToken(authHeader);
+        if (username != null) {
+            post.setAuthor(username);
         }
         return postRepository.save(post);
     }
@@ -74,9 +74,9 @@ public class ForumController {
             @RequestBody Comment comment) {
 
         comment.setPostId(postId);
-        String userId = extractUserIdFromToken(authHeader);
-        if (userId != null) {
-            comment.setAuthor(userId);
+        String username = extractUsernameFromToken(authHeader);
+        if (username != null) {
+            comment.setAuthor(username);
         }
         return commentRepository.save(comment);
     }

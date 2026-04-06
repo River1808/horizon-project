@@ -63,7 +63,6 @@ export default function Forum() {
     const newPost = {
       title: title,
       content: content,
-      author: username || "Guest User",
     };
 
     try {
@@ -92,7 +91,6 @@ export default function Forum() {
     e.preventDefault();
 
     const comment = {
-      author: username || "Guest User",
       content: commentText,
     };
 
