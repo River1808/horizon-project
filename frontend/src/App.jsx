@@ -18,6 +18,9 @@ import CreateChallenge from "./pages/CreateChallenge";
 import ChallengeDetails from "./pages/ChallengeDetails";
 import EditChallenge from "./pages/EditChallenge"; 
 import EditMapPage from "./pages/EditMapPage";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import ForgetPassword from "./pages/ForgetPassword";
 function App() {
   return (
     <SearchProvider>
@@ -44,6 +47,9 @@ function App() {
               <Route path="/challenges/:id" element={<ChallengeDetails />} />
               <Route path="/challenges/:id/edit" element={<EditChallenge />} />
               <Route path="/edit-station/:id" element={<EditMapPage />} />
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forget-password" element={<ForgetPassword />} />
             </Routes>
           </main>
           <footer className="footer">

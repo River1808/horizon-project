@@ -6,9 +6,19 @@ import "./Home.css";   // <-- add this line
 const Home = () => {
   const [lessons, setLessons] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem("token");
+    const savedUsername = localStorage.getItem("username");
+    if (token && savedUsername) {
+      setIsLoggedIn(true);
+      setUsername(savedUsername);
+    }
+
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/lessons`)
       .then((res) => {
@@ -22,6 +32,14 @@ const Home = () => {
       categoryFilter === "All" || lesson.category === categoryFilter;
     return matchesCategory;
   });
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    setIsLoggedIn(false);
+    setUsername("");
+    navigate("/");
+  };
 
 
   return (
@@ -37,9 +55,23 @@ const Home = () => {
             <p>Khám phá STEAM, sáng tạo tương lai</p>
 
             {/* BLUE BUTTON */}
-            <Link to="/lessons" className="hero-btn">
-              Bắt đầu khám phá
-            </Link>
+            <div className="hero-buttons">
+              <Link to="/lessons" className="hero-btn">
+                Bắt đầu khám phá
+              </Link>
+              {isLoggedIn ? (
+                <div className="welcome-section">
+                  <span className="welcome-text">Welcome back, {username}!</span>
+                  <button onClick={handleLogout} className="hero-btn signin-btn logout-btn">
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link to="/signin" className="hero-btn signin-btn">
+                  Sign in
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Right Image */}

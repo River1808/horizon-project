@@ -13,7 +13,7 @@
 /* ------------------------------------------------------ */
 
 .hero-section {
-  padding: 80px 0;
+  padding: 90px 0;
   background: linear-gradient(to right, #3b82f6, #2563eb);
   color: white;
 }
@@ -33,7 +33,7 @@
   font-size: 48px;
   font-weight: 800;
   margin-bottom: 20px;
-  font-family: Noto Serif !important;
+  font-family: "Noto Serif";
 }
 
 .hero-text p {
@@ -41,39 +41,110 @@
   margin-bottom: 30px;
 }
 
+/* BUTTON WRAPPER */
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* ------------------ MAIN BUTTON ------------------ */
 .hero-btn {
-  display: inline-block;
-  background: #1eaf3b;
-  padding: 12px 30px;
-  border-radius: 30px;
+  background: #22c55e;
+  padding: 18px 55px;
+  border-radius: 40px;
   color: white;
-  font-weight: 600;
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 22px;
   text-decoration: none;
   transition: 0.3s;
+
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+  min-width: 240px;
+  text-align: center;
 }
 
 .hero-btn:hover {
-  background: #1e3a8a;
+  background: #16a34a;
+  transform: translateY(-2px);
 }
 
+/* ------------------ SIGN IN SMALL BUTTON ------------------ */
+.signin-btn {
+  background: transparent !important;
+  border: 2px solid white !important;
+  padding: 8px 18px !important;
+  border-radius: 20px !important;
+
+  font-size: 14px !important;
+  font-weight: 600 !important;
+
+  min-width: auto !important;
+  box-shadow: none !important;
+}
+
+.signin-btn:hover {
+  background: white !important;
+  color: #2563eb !important;
+  transform: none !important;
+}
+
+.welcome-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.welcome-text {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.logout-btn {
+  background: white !important;
+  color: #2563eb !important;
+  padding: 8px 18px !important;
+  border: 2px solid white !important;
+}
+
+.logout-btn:hover {
+  background: #f3f4f6 !important;
+  color: #2563eb !important;
+}
+
+/* HERO IMAGE */
 .hero-image img {
-  width: 340px;
+  width: 360px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.3));
 }
 
+/* RESPONSIVE */
 @media (max-width: 768px) {
+
   .hero-content {
     flex-direction: column;
     text-align: center;
   }
 
+  .hero-buttons {
+    justify-content: center;
+  }
+
   .hero-image img {
     width: 70%;
+    margin-top: 20px;
+  }
+
+  .hero-text h1 {
+    font-size: 36px;
+  }
+
+  .hero-text p {
+    font-size: 18px;
   }
 }
-
 /* ------------------------------------------------------ */
 /*                    LESSONS SECTION                     */
 /* ------------------------------------------------------ */
