@@ -35,8 +35,8 @@ public class AuthController {
         }
 
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
-            return ResponseEntity.ok(Map.of("token", token, "role", user.getRole()));
+            String token = jwtUtil.generateToken(user.getUsername(), user.getRole(), user.getId());
+            return ResponseEntity.ok(Map.of("token", token, "role", user.getRole(), "userId", user.getId(), "username", user.getUsername()));
         } else {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
@@ -57,9 +57,9 @@ public class AuthController {
 
         String hashedPassword = passwordEncoder.encode(password);
         User newUser = new User(username, username, email, hashedPassword, "user");
-        userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
 
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok(Map.of("message", "User registered successfully", "userId", savedUser.getId()));
     }
 
     @PostMapping("/forgot-password")

@@ -12,10 +12,20 @@ export default function Forum() {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [comments, setComments] = useState([]);
+  const [token, setToken] = useState("");
+  const [username, setUsername] = useState("");
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [commentText, setCommentText] = useState("");
+
+  // Load token and username from localStorage
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    const savedUsername = localStorage.getItem("username");
+    setToken(savedToken);
+    setUsername(savedUsername);
+  }, []);
 
   // Load posts
   useEffect(() => {
@@ -53,13 +63,20 @@ export default function Forum() {
     const newPost = {
       title: title,
       content: content,
-      author: "Guest User",
+      author: username || "Guest User",
     };
 
     try {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       await fetch(`${API_BASE}/posts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify(newPost),
       });
 
@@ -75,14 +92,21 @@ export default function Forum() {
     e.preventDefault();
 
     const comment = {
-      author: "Guest User",
+      author: username || "Guest User",
       content: commentText,
     };
 
     try {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       await fetch(`${API_BASE}/posts/${selectedPost.id}/comments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify(comment),
       });
 

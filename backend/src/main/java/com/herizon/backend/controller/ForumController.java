@@ -4,6 +4,7 @@ import com.herizon.backend.model.Post;
 import com.herizon.backend.model.Comment;
 import com.herizon.backend.repository.PostRepository;
 import com.herizon.backend.repository.CommentRepository;
+import com.herizon.backend.util.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,18 @@ public class ForumController {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    // Helper method to extract userId from Authorization header
+    private String extractUserIdFromToken(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            return jwtUtil.extractUserId(token);
+        }
+        return null;
+    }
+
     // =============================
     // GET ALL POSTS
     // =============================
@@ -33,7 +46,13 @@ public class ForumController {
     // CREATE POST
     // =============================
     @PostMapping("/posts")
-    public Post createPost(@RequestBody Post post) {
+    public Post createPost(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody Post post) {
+        String userId = extractUserIdFromToken(authHeader);
+        if (userId != null) {
+            post.setAuthor(userId);
+        }
         return postRepository.save(post);
     }
 
@@ -51,9 +70,14 @@ public class ForumController {
     @PostMapping("/posts/{postId}/comments")
     public Comment addComment(
             @PathVariable String postId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Comment comment) {
 
         comment.setPostId(postId);
+        String userId = extractUserIdFromToken(authHeader);
+        if (userId != null) {
+            comment.setAuthor(userId);
+        }
         return commentRepository.save(comment);
     }
 }
