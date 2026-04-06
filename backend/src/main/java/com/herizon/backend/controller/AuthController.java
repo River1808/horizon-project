@@ -62,16 +62,12 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "User registered successfully", "userId", savedUser.getId()));
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> forgotRequest) {
-        String email = forgotRequest.get("email");
-
-        User user = userRepository.findByEmail(email);
-        if (user != null) {
-            // In a real app, send OTP via email
-            return ResponseEntity.ok("OTP sent to your email");
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable String id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            return ResponseEntity.ok(Map.of("username", user.get().getUsername()));
         } else {
-            return ResponseEntity.status(404).body("Email not found");
+            return ResponseEntity.notFound().build();
         }
     }
-}

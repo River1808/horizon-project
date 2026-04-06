@@ -24,7 +24,7 @@ const SignIn = () => {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, formData);
       // Handle success, maybe store token
       localStorage.setItem("token", response.data.token);
-      localStorage.setItem("username", formData.usernameOrEmail);
+      localStorage.setItem("username", response.data.username);
       navigate("/");
     } catch (err) {
       setError("Invalid credentials");

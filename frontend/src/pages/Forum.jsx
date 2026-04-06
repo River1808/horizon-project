@@ -2,10 +2,24 @@ import React, { useEffect, useState } from "react";
 import "./Forum.css";
 
 const API_BASE = `${import.meta.env.VITE_API_URL}/api/forum`;
+const AUTH_API_BASE = `${import.meta.env.VITE_API_URL}/api/auth`;
 
 export async function getPosts() {
   const res = await fetch(`${API_BASE}/posts`);
   return res.json();
+}
+
+// Function to get username by user ID
+export async function getUsernameById(userId) {
+  if (userId === "anonymous") return "Anonymous";
+  try {
+    const res = await fetch(`${AUTH_API_BASE}/user/${userId}`);
+    const data = await res.json();
+    return data.username || "Unknown User";
+  } catch (err) {
+    console.error("Error fetching username:", err);
+    return "Unknown User";
+  }
 }
 
 export default function Forum() {
@@ -14,6 +28,7 @@ export default function Forum() {
   const [comments, setComments] = useState([]);
   const [token, setToken] = useState("");
   const [username, setUsername] = useState("");
+  const [userMap, setUserMap] = useState({}); // Map userId to username
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -27,6 +42,22 @@ export default function Forum() {
     setUsername(savedUsername);
   }, []);
 
+  // Function to resolve usernames for posts/comments
+  const resolveUsernames = async (items) => {
+    const updatedItems = [];
+    for (const item of items) {
+      if (!userMap[item.author]) {
+        const username = await getUsernameById(item.author);
+        setUserMap(prev => ({ ...prev, [item.author]: username }));
+      }
+      updatedItems.push({
+        ...item,
+        displayAuthor: userMap[item.author] || await getUsernameById(item.author)
+      });
+    }
+    return updatedItems;
+  };
+
   // Load posts
   useEffect(() => {
     fetchPosts();
@@ -36,7 +67,8 @@ export default function Forum() {
     try {
       const res = await fetch(`${API_BASE}/posts`);
       const data = await res.json();
-      setPosts(data);
+      const postsWithUsernames = await resolveUsernames(data);
+      setPosts(postsWithUsernames);
     } catch (err) {
       console.error("Error loading posts:", err);
     }
@@ -46,7 +78,8 @@ export default function Forum() {
     try {
       const res = await fetch(`${API_BASE}/posts/${postId}/comments`);
       const data = await res.json();
-      setComments(data);
+      const commentsWithUsernames = await resolveUsernames(data);
+      setComments(commentsWithUsernames);
     } catch (err) {
       console.error("Error loading comments:", err);
     }
@@ -81,7 +114,7 @@ export default function Forum() {
 
       setTitle("");
       setContent("");
-      fetchPosts();
+      fetchPosts(); // Refresh posts to show the new one with username
     } catch (err) {
       console.error("Error creating post:", err);
     }
@@ -172,7 +205,7 @@ export default function Forum() {
               >
                 <h3>{post.title}</h3>
                 <p>{post.content.substring(0, 120)}...</p>
-                <span className="post-author">👤 {post.author}</span>
+                <span className="post-author">👤 {post.displayAuthor}</span>
               </div>
 
               {/* 🔽 POST DETAILS BELOW CLICKED POST */}
@@ -180,7 +213,7 @@ export default function Forum() {
                 <div className="post-detail">
 
                   <h2>{selectedPost.title}</h2>
-                  <p className="post-author">👤 {selectedPost.author}</p>
+                  <p className="post-author">👤 {selectedPost.displayAuthor}</p>
 
                   <p className="post-content-full">
                     {selectedPost.content}
@@ -191,7 +224,7 @@ export default function Forum() {
                   <div className="comment-list">
                     {comments.map((c) => (
                       <div key={c.id} className="comment">
-                        <b>👤 {c.author}</b>
+                        <b>👤 {c.displayAuthor}</b>
                         <p>{c.content}</p>
                       </div>
                     ))}

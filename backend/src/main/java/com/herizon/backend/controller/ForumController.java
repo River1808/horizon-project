@@ -49,9 +49,11 @@ public class ForumController {
     public Post createPost(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Post post) {
-        String username = extractUsernameFromToken(authHeader);
-        if (username != null) {
-            post.setAuthor(username);
+        String userId = extractUserIdFromToken(authHeader);
+        if (userId != null) {
+            post.setAuthor(userId);
+        } else {
+            post.setAuthor("anonymous");
         }
         return postRepository.save(post);
     }
@@ -74,9 +76,11 @@ public class ForumController {
             @RequestBody Comment comment) {
 
         comment.setPostId(postId);
-        String username = extractUsernameFromToken(authHeader);
-        if (username != null) {
-            comment.setAuthor(username);
+        String userId = extractUserIdFromToken(authHeader);
+        if (userId != null) {
+            comment.setAuthor(userId);
+        } else {
+            comment.setAuthor("anonymous");
         }
         return commentRepository.save(comment);
     }
